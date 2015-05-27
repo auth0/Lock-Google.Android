@@ -35,7 +35,7 @@ Then in your project's `AndroidManifest.xml` add the following entries:
 Just create a new instance of `GooglePlusIdentityProvider`
 
 ```java
-    GooglePlusIdentityProvider googleplus = new GooglePlusIdentityProvider();
+GooglePlusIdentityProvider googleplus = new GooglePlusIdentityProvider();
 ```
 
 and register it with your instance of `Lock`
