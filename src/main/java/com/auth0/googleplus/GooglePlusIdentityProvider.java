@@ -142,24 +142,31 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     public void onConnectionFailed(ConnectionResult result) {
         final int errorCode = result.getErrorCode();
         Log.v(TAG, "Connection failed with code " + errorCode);
-        if (errorCode == ConnectionResult.SERVICE_MISSING) {
-            authenticating = false;
-            Log.e(TAG, "service not available");
-            callback.onFailure(GooglePlayServicesUtil.getErrorDialog(errorCode, activity, 0));
-        } else if ((errorCode == ConnectionResult.SIGN_IN_REQUIRED || errorCode == ConnectionResult.RESOLUTION_REQUIRED) && authenticating) {
-            Log.v(TAG, "G+ Sign in required");
-            final PendingIntent mSignInIntent = result.getResolution();
-            try {
-                activity.startIntentSenderForResult(mSignInIntent.getIntentSender(), GOOGLE_PLUS_REQUEST_CODE, null, 0, 0, 0);
-            } catch (IntentSender.SendIntentException ignore) {
+        switch (errorCode) {
+            case ConnectionResult.SERVICE_MISSING:
                 authenticating = false;
-                apiClient.connect();
-                Log.w(TAG, "G+ pending intent cancelled", ignore);
-            }
-        } else {
-            authenticating = false;
-            Log.e(TAG, "Connection failed with unrecoverable error");
-            callback.onFailure(R.string.com_auth0_social_error_title, R.string.com_auth0_social_error_message, null);
+                Log.e(TAG, "service not available");
+                callback.onFailure(GooglePlayServicesUtil.getErrorDialog(errorCode, activity, 0));
+                break;
+            case ConnectionResult.SIGN_IN_REQUIRED:
+            case ConnectionResult.RESOLUTION_REQUIRED:
+                if (authenticating) {
+                    Log.v(TAG, "Showing G+ consent activity to the user");
+                    final PendingIntent mSignInIntent = result.getResolution();
+                    try {
+                        activity.startIntentSenderForResult(mSignInIntent.getIntentSender(), GOOGLE_PLUS_REQUEST_CODE, null, 0, 0, 0);
+                    } catch (IntentSender.SendIntentException ignore) {
+                        authenticating = false;
+                        apiClient.connect();
+                        Log.w(TAG, "G+ pending intent cancelled", ignore);
+                    }
+                }
+                break;
+            default:
+                authenticating = false;
+                Log.e(TAG, "Connection failed with unrecoverable error");
+                callback.onFailure(R.string.com_auth0_social_error_title, R.string.com_auth0_social_error_message, null);
+                break;
         }
     }
 
