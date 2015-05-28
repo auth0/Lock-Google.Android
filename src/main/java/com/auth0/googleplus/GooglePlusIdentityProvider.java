@@ -74,8 +74,12 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
             stop();
             return;
         }
-        apiClient.connect();
         authenticating = true;
+        if (apiClient.isConnected()) {
+            fetchToken();
+        } else {
+            apiClient.connect();
+        }
     }
 
     @Override
@@ -89,6 +93,11 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     @Override
     public boolean authorize(Activity activity, int requestCode, int resultCode, Intent data) {
         this.activity = activity;
+        if (resultCode == Activity.RESULT_CANCELED) {
+            Log.d(TAG, "User cannceled operation with code " + requestCode);
+            authenticating = false;
+            return false;
+        }
         if (requestCode == GOOGLE_PLUS_REQUEST_CODE) {
             Log.v(TAG, "Received request activity result " + resultCode);
             if (!apiClient.isConnecting()) {
@@ -103,7 +112,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
                 fetchToken();
             }
         }
-        return true;
+        return authenticating;
     }
 
     @Override
@@ -120,7 +129,6 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
 
     @Override
     public void onConnected(Bundle bundle) {
-        authenticating = false;
         fetchToken();
     }
 
