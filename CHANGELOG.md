@@ -1,5 +1,25 @@
 # Change Log
 
+## [2.0.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.0.0) (2015-05-28)
+
+[Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/1.0.7...2.0.0)
+
+**Implemented enhancements:**
+
+- Update to play-services-plus to 7.x [\#1](https://github.com/auth0/Lock-GooglePlus.Android/issues/1)
+
+**Fixed bugs:**
+
+- Use profile scope instead of plus.login [\#3](https://github.com/auth0/Lock-GooglePlus.Android/issues/3)
+
+- Properly handle when user revoke access [\#2](https://github.com/auth0/Lock-GooglePlus.Android/issues/2)
+
+**Merged pull requests:**
+
+- Use scope 'SCOPE\_PLUS\_PROFILE' [\#5](https://github.com/auth0/Lock-GooglePlus.Android/pull/5) ([hzalaz](https://github.com/hzalaz))
+
+- Update G+ SDK version [\#4](https://github.com/auth0/Lock-GooglePlus.Android/pull/4) ([hzalaz](https://github.com/hzalaz))
+
 ## [1.0.7](https://github.com/auth0/Lock-GooglePlus.Android/tree/1.0.7) (2015-05-27)
 
 
