@@ -54,7 +54,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
-                .addScope(Plus.SCOPE_PLUS_LOGIN)
+                .addScope(Plus.SCOPE_PLUS_PROFILE)
                 .build();
     }
 
