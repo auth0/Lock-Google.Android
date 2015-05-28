@@ -97,9 +97,13 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
             return true;
         } else if(requestCode == GOOGLE_PLUS_TOKEN_REQUEST_CODE) {
             Log.v(TAG, "Received token request activity result " + resultCode);
-            apiClient.connect();
+            if (!apiClient.isConnected()) {
+                apiClient.connect();
+            } else {
+                fetchToken();
+            }
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -117,7 +121,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     @Override
     public void onConnected(Bundle bundle) {
         authenticating = false;
-        new FetchTokenAsyncTask(apiClient, activity, callback).execute("email", "profile");
+        fetchToken();
     }
 
     @Override
@@ -128,23 +132,30 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        Log.v(TAG, "Connection failed with code " + result.getErrorCode());
-        if (result.getErrorCode() == ConnectionResult.SERVICE_MISSING) {
-            Log.e(TAG, "service not available");
-            callback.onFailure(GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), activity, 0));
-        } else if (result.getErrorCode() == ConnectionResult.SIGN_IN_REQUIRED && authenticating) {
+        final int errorCode = result.getErrorCode();
+        Log.v(TAG, "Connection failed with code " + errorCode);
+        if (errorCode == ConnectionResult.SERVICE_MISSING) {
             authenticating = false;
+            Log.e(TAG, "service not available");
+            callback.onFailure(GooglePlayServicesUtil.getErrorDialog(errorCode, activity, 0));
+        } else if ((errorCode == ConnectionResult.SIGN_IN_REQUIRED || errorCode == ConnectionResult.RESOLUTION_REQUIRED) && authenticating) {
             Log.v(TAG, "G+ Sign in required");
             final PendingIntent mSignInIntent = result.getResolution();
             try {
                 activity.startIntentSenderForResult(mSignInIntent.getIntentSender(), GOOGLE_PLUS_REQUEST_CODE, null, 0, 0, 0);
             } catch (IntentSender.SendIntentException ignore) {
+                authenticating = false;
                 apiClient.connect();
                 Log.w(TAG, "G+ pending intent cancelled", ignore);
             }
         } else {
+            authenticating = false;
             Log.e(TAG, "Connection failed with unrecoverable error");
             callback.onFailure(R.string.com_auth0_social_error_title, R.string.com_auth0_social_error_message, null);
         }
+    }
+
+    private void fetchToken() {
+        new FetchTokenAsyncTask(apiClient, activity, callback).execute("email", "profile");
     }
 }
