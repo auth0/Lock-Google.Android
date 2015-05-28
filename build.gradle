@@ -138,34 +138,39 @@ artifacts {
     archives sourcesJar
 }
 
-apply plugin: 'com.jfrog.bintray'
-
 ext.bintrayProps = loadProperties('local.properties')
 
-bintray {
-    user = bintrayProps.getProperty("bintray.user")
-    key = bintrayProps.getProperty("bintray.apikey")
-    configurations = ['archives']
-    pkg {
-        repo = 'lock-android'
-        name = POM_ARTIFACT_ID
-        websiteUrl = POM_URL
-        vcsUrl = POM_SCM_CONNECTION
-        licenses = ["MIT"]
-        userOrg = 'auth0'
-        publish = false
-        version {
-            gpg {
-                sign = true //Determines whether to GPG sign the files. The default is false
-                passphrase = bintrayProps.getProperty("bintray.gpg.password") //Optional. The passphrase for GPG signing'
+if (ext.bintrayProps) {
+    apply plugin: 'com.jfrog.bintray'
+    bintray {
+        user = bintrayProps.getProperty("bintray.user")
+        key = bintrayProps.getProperty("bintray.apikey")
+        configurations = ['archives']
+        pkg {
+            repo = 'lock-android'
+            name = POM_ARTIFACT_ID
+            websiteUrl = POM_URL
+            vcsUrl = POM_SCM_CONNECTION
+            licenses = ["MIT"]
+            userOrg = 'auth0'
+            publish = false
+            version {
+                gpg {
+                    sign = true //Determines whether to GPG sign the files. The default is false
+                    passphrase = bintrayProps.getProperty("bintray.gpg.password") //Optional. The passphrase for GPG signing'
+                }
+                vcsTag = VERSION_NAME
             }
-            vcsTag = VERSION_NAME
         }
-    }
+    }    
 }
 
 def loadProperties(fileName) {
-    def props = new Properties()
-    props.load(project.rootProject.file(fileName).newDataInputStream())
-    return props
+    try {
+        def props = new Properties()
+        props.load(project.rootProject.file(fileName).newDataInputStream())
+        return props
+    } catch(all) { 
+        return null
+    }
 }
