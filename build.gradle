@@ -1,7 +1,6 @@
 buildscript {
     repositories {
         jcenter()
-        mavenCentral()
 
     }
     dependencies {
@@ -16,7 +15,6 @@ group = GROUP
 
 repositories {
     jcenter()
-    mavenLocal()
 }
 
 ext.libraries = [
@@ -146,9 +144,12 @@ if (ext.bintrayProps) {
         user = bintrayProps.getProperty("bintray.user")
         key = bintrayProps.getProperty("bintray.apikey")
         configurations = ['archives']
+        dryRun = version.endsWith("-SNAPSHOT")
+        publish = false
         pkg {
             repo = 'lock-android'
             name = POM_ARTIFACT_ID
+            desc = POM_DESCRIPTION
             websiteUrl = POM_URL
             vcsUrl = POM_SCM_CONNECTION
             licenses = ["MIT"]
@@ -160,6 +161,8 @@ if (ext.bintrayProps) {
                     passphrase = bintrayProps.getProperty("bintray.gpg.password") //Optional. The passphrase for GPG signing'
                 }
                 vcsTag = VERSION_NAME
+                name = VERSION_NAME
+                released = new Date()
             }
         }
     }    
