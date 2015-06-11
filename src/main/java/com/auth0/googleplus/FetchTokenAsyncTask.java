@@ -75,8 +75,6 @@ public class FetchTokenAsyncTask extends AsyncTask<String, Void, Object> {
         } catch (UserRecoverableAuthException e) {
             Log.d(TAG, "User permission from the user required in order to fetch token", e);
             context.startActivityForResult(e.getIntent(), IdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE);
-        } catch (GoogleAuthException authEx) {
-            holder = new FetchTokenResultHolder(R.string.com_auth0_social_error_title, R.string.com_auth0_social_error_message, authEx);
         } catch (Exception e) {
             holder = new FetchTokenResultHolder(R.string.com_auth0_social_error_title, R.string.com_auth0_social_error_message, e);
         }

@@ -55,6 +55,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
                 .addScope(Plus.SCOPE_PLUS_PROFILE)
+                .useDefaultAccount()
                 .build();
     }
 
@@ -84,10 +85,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
 
     @Override
     public void stop() {
-        if (apiClient.isConnected()) {
-            apiClient.disconnect();
-        }
-        activity = null;
+        clearSession();
     }
 
     @Override
@@ -122,7 +120,9 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
         } catch (IllegalStateException e) {
             Log.e(TAG, "Failed to clear G+ Session", e);
         } finally {
-            stop();
+            if (apiClient.isConnected()) {
+                apiClient.disconnect();
+            }
             activity = null;
         }
     }
