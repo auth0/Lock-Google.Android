@@ -116,7 +116,9 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     @Override
     public void clearSession() {
         try {
-            Plus.AccountApi.clearDefaultAccount(apiClient);
+            if (apiClient.isConnected()) {
+                Plus.AccountApi.clearDefaultAccount(apiClient);
+            }
         } catch (IllegalStateException e) {
             Log.e(TAG, "Failed to clear G+ Session", e);
         } finally {
