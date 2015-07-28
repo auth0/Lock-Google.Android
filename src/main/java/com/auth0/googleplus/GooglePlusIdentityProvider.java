@@ -33,6 +33,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.auth0.core.Application;
+import com.auth0.core.Strategies;
 import com.auth0.identity.IdentityProvider;
 import com.auth0.identity.IdentityProviderCallback;
 import com.auth0.identity.IdentityProviderRequest;
@@ -65,7 +66,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     }
 
     @Override
-    public void start(Activity activity, IdentityProviderRequest event, Application application) {
+    public void start(Activity activity, String serviceName) {
         this.activity = activity;
         Log.v(TAG, "Starting G+ connection");
         final int availabilityStatus = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity);
@@ -81,6 +82,11 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
         } else {
             apiClient.connect();
         }
+    }
+
+    @Override
+    public void start(Activity activity, IdentityProviderRequest event, Application application) {
+        start(activity, Strategies.GooglePlus.getName());
     }
 
     @Override
