@@ -1,5 +1,15 @@
 # Change Log
 
+## [2.1.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.1.0) (2015-07-28)
+
+[Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/2.0.0...2.1.0)
+
+**Merged pull requests:**
+
+- Update com.auth0.android:core dep [\#8](https://github.com/auth0/Lock-GooglePlus.Android/pull/8) ([hzalaz](https://github.com/hzalaz))
+
+- Handle revoke automatically [\#7](https://github.com/auth0/Lock-GooglePlus.Android/pull/7) ([hzalaz](https://github.com/hzalaz))
+
 ## [2.0.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.0.0) (2015-05-28)
 
 [Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/1.0.7...2.0.0)
