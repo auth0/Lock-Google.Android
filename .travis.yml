@@ -2,11 +2,11 @@ language: android
 android:
   components:
   - build-tools-21.1.2
-  - android-22
+  - android-23
   - extra-google-google_play_services
   - extra-google-m2repository
   - extra-android-m2repository
-  - addon-google_apis-google-22
+  - addon-google_apis-google-23
 script:
 - "./gradlew clean check --continue"
 branches:
