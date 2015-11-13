@@ -11,14 +11,14 @@ Lock-GooglePlus helps you integrate native Login with [Google+ Android SDK](http
 
 ## Requierements
 
-Android 4.0 or later & Google Play Services 7.+
+Android 4.0 or later & Google Play Services 8.+
 
 ## Install
 
 The Lock-GooglePlus is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
 
 ```gradle
-compile 'com.auth0.android:lock-googleplus:2.0.+'
+compile 'com.auth0.android:lock-googleplus:2.3.+'
 ```
 
 Then in your project's `AndroidManifest.xml` add the following entries:
