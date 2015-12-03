@@ -23,9 +23,9 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.auth0.android:identity-core:1.12.0'
+    compile libraries.lock_identity_core
     compile libraries.app_compat
-    compile 'com.google.android.gms:play-services-plus:8.3.0'
+    compile libraries.google_play_services_plus
 }
 
 apply from: '../maven_push.gradle'

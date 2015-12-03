@@ -33,7 +33,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.auth0.api.authentication.AuthenticationAPIClient;
+import com.auth0.api.authentication.AuthenticationRequest;
+import com.auth0.api.callback.AuthenticationCallback;
+import com.auth0.core.Auth0;
+import com.auth0.core.Strategies;
 import com.auth0.core.Token;
+import com.auth0.core.UserProfile;
 import com.auth0.googleplus.GooglePlusIdentityProvider;
 import com.auth0.identity.IdentityProviderCallback;
 
@@ -41,9 +47,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getName();
 
-    private static final int RETURN_CODE = 432;
+    GooglePlusIdentityProvider provider;
 
-    private GooglePlusIdentityProvider provider;
+    boolean authRequestInProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final TextView textView = (TextView) findViewById(R.id.textView);
+
+        Auth0 auth0 = new Auth0(getString(R.string.auth0_client_id), getString(R.string.auth0_domain_name));
+        final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
 
         provider = new GooglePlusIdentityProvider(MainActivity.this);
         provider.setCallback(new IdentityProviderCallback() {
@@ -78,7 +87,20 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(String serviceName, String accessToken) {
                 Log.d(TAG, "onSuccess, serviceName: " + serviceName + ", accessToken: " + accessToken);
 
-                textView.setText("Logged in with token: " + accessToken);
+                textView.setText("Trying to log in with GooglePlus token: " + accessToken);
+
+                AuthenticationRequest request = client.loginWithOAuthAccessToken(accessToken, serviceName);
+                request.start(new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(UserProfile profile, Token token) {
+                        textView.setText("Welcome " + profile.getName());
+                    }
+
+                    @Override
+                    public void onFailure(Throwable error) {
+                        textView.setText("Log in failed. " + error.getMessage());
+                    }
+                });
             }
 
             @Override
@@ -94,7 +116,8 @@ public class MainActivity extends AppCompatActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        provider.start(MainActivity.this, "googleplus");
+                        authRequestInProgress = true;
+                        provider.start(MainActivity.this, Strategies.GooglePlus.getName());
                     }
                 }
         );
@@ -109,12 +132,17 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        provider.authorize(this, GooglePlusIdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE, RETURN_CODE, getIntent());
+        if (authRequestInProgress) {
+            provider.authorize(this, GooglePlusIdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE, 9876, getIntent());
+            authRequestInProgress = false;
+        }
     }
 }
