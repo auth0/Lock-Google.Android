@@ -98,6 +98,17 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        Button logoutButton = (Button) findViewById(R.id.logoutButton);
+        logoutButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        textView.setText("");
+                        provider.clearSession();
+                    }
+                }
+        );
     }
 
     @Override
