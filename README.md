@@ -13,6 +13,17 @@ Lock-GooglePlus helps you integrate native Login with [Google+ Android SDK](http
 
 Android 4.0 or later & Google Play Services 8.+
 
+## Before you start using Lock-Google
+
+In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your clientId.
+We recommend follwing Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`.
+
+> For more information please check Google's [documentation](https://developers.google.com/identity/sign-in/android/)
+
+### Auth0 Connection with multiple Google clientIDs (Web & Mobile)
+
+If you also have a Web Application, and a Google clientID & secret for it configured in Auth0, you need to whitelist the Google clientID of your mobile application in your Auth0 connection. With your Mobile clientID from Google, go to [Social Connections](https://manage.auth0.com/#/connections/social), select **Google** and add the clientID to the field named `Allowed Mobile Client IDs`
+
 ## Install
 
 The Lock-GooglePlus is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
@@ -28,8 +39,6 @@ Then in your project's `AndroidManifest.xml` add the following entries:
 <uses-permission android:name="android.permission.USE_CREDENTIALS" />
 <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
 ```
-
-> You'll need to register your application in Google+, to do it follow the instructions in Step 1 of this [guide](https://developers.google.com/+/mobile/android/getting-started)
 
 ## Usage
 
