@@ -16,7 +16,8 @@ Android 4.0 or later & Google Play Services 8.+
 ## Before you start using Lock-Google
 
 In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your clientId.
-We recommend follwing Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`.
+We recommend follwing Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then with your OAuth Mobile clientID from Google, the only step missing is to configure your Google Connection in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social) with your recenlty created Google clientId.
+
 
 > For more information please check Google's [documentation](https://developers.google.com/identity/sign-in/android/)
 
