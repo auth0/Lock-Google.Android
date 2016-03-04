@@ -26,6 +26,7 @@ package com.auth0.googleplus.testapp;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -143,6 +144,13 @@ public class MainActivity extends AppCompatActivity {
         if (authRequestInProgress) {
             provider.authorize(this, GooglePlusIdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE, 9876, getIntent());
             authRequestInProgress = false;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (provider != null) {
+            provider.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 }
