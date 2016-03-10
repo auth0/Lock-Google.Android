@@ -31,6 +31,8 @@ import android.support.v7.app.AlertDialog;
 
 import com.auth0.identity.AuthorizedIdentityProvider;
 
+import java.util.List;
+
 public class GooglePlusIdentityProvider extends AuthorizedIdentityProvider {
 
     private final Context context;
@@ -41,7 +43,7 @@ public class GooglePlusIdentityProvider extends AuthorizedIdentityProvider {
     }
 
     @Override
-    public void onPermissionRequireExplanation(String permission) {
+    public void onPermissionsRequireExplanation(List<String> permissions) {
         new AlertDialog.Builder(context)
                 .setTitle("Google Sign-In")
                 .setMessage("Access to Contacts is needed for this provider to work. " +
@@ -59,7 +61,6 @@ public class GooglePlusIdentityProvider extends AuthorizedIdentityProvider {
                 .show();
     }
 
-    @Override
     public String[] getRequiredPermissions() {
         return new String[]{Manifest.permission.GET_ACCOUNTS};
     }
