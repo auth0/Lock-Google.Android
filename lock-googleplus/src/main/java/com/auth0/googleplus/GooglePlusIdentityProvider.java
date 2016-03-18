@@ -34,6 +34,8 @@ import android.util.Log;
 
 import com.auth0.core.Application;
 import com.auth0.core.Strategies;
+import com.auth0.google.FetchTokenAsyncTask;
+import com.auth0.google.R;
 import com.auth0.identity.IdentityProvider;
 import com.auth0.identity.IdentityProviderCallback;
 import com.auth0.identity.IdentityProviderRequest;
@@ -42,11 +44,16 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 
+/**
+ * Please use {@link com.auth0.google.GoogleIdentityProvider} instead that has support for Android M permission model.
+ */
+@Deprecated
 public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     public static final String TAG = GooglePlusIdentityProvider.class.getName();
     private final GoogleApiClient apiClient;
     private boolean authenticating;
+    private boolean requestedLogin;
     private Activity activity;
     private IdentityProviderCallback callback;
 
@@ -138,6 +145,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     @Override
     public void onConnected(Bundle bundle) {
         fetchToken();
+        requestedLogin = false;
     }
 
     @Override
@@ -152,29 +160,45 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
         Log.v(TAG, "Connection failed with code " + errorCode);
         switch (errorCode) {
             case ConnectionResult.SERVICE_MISSING:
+                requestedLogin = false;
                 authenticating = false;
                 Log.e(TAG, "service not available");
                 callback.onFailure(GooglePlayServicesUtil.getErrorDialog(errorCode, activity, 0));
                 break;
             case ConnectionResult.SIGN_IN_REQUIRED:
-            case ConnectionResult.RESOLUTION_REQUIRED:
-                if (authenticating) {
-                    Log.v(TAG, "Showing G+ consent activity to the user");
-                    final PendingIntent mSignInIntent = result.getResolution();
-                    try {
-                        activity.startIntentSenderForResult(mSignInIntent.getIntentSender(), GOOGLE_PLUS_REQUEST_CODE, null, 0, 0, 0);
-                    } catch (IntentSender.SendIntentException ignore) {
-                        authenticating = false;
-                        apiClient.connect();
-                        Log.w(TAG, "G+ pending intent cancelled", ignore);
-                    }
+                if (requestedLogin) {
+                    requestedLogin = false;
+                    authenticating = false;
+                    Log.e(TAG, "User dismissed the sign in account picker");
+                    callback.onFailure(R.string.com_auth0_google_authentication_failed_title, R.string.com_auth0_google_authentication_failed_message, null);
+                } else {
+                    requestAuthentication(result);
                 }
+                break;
+            case ConnectionResult.RESOLUTION_REQUIRED:
+                requestAuthentication(result);
                 break;
             default:
                 authenticating = false;
+                requestedLogin = false;
                 Log.e(TAG, "Connection failed with unrecoverable error");
                 callback.onFailure(R.string.com_auth0_social_error_title, R.string.com_auth0_social_error_message, null);
                 break;
+        }
+    }
+
+    private void requestAuthentication(ConnectionResult result) {
+        if (authenticating) {
+            Log.v(TAG, "Showing G+ consent activity to the user");
+            final PendingIntent mSignInIntent = result.getResolution();
+            try {
+                activity.startIntentSenderForResult(mSignInIntent.getIntentSender(), GOOGLE_PLUS_REQUEST_CODE, null, 0, 0, 0);
+                requestedLogin = true;
+            } catch (IntentSender.SendIntentException ignore) {
+                authenticating = false;
+                apiClient.connect();
+                Log.w(TAG, "G+ pending intent cancelled", ignore);
+            }
         }
     }
 

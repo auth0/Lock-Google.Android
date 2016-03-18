@@ -1,15 +1,20 @@
 apply plugin: 'com.android.application'
 
+def clientId = hasProperty("com.auth0.account.clientId") ? getProperty("com.auth0.account.clientId") : "CLIENT_ID"
+def domain = hasProperty("com.auth0.account.domain") ? getProperty("com.auth0.account.domain") : "DOMAIN"
+
 android {
     compileSdkVersion compile.maxSdk
     buildToolsVersion compile.buildToolsVersion
 
     defaultConfig {
-        applicationId "com.auth0.googleplus.testapp"
+        applicationId "com.auth0.google.app"
         minSdkVersion compile.minSdk
         targetSdkVersion compile.maxSdk
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
+        resValue "string", "auth0_client_id", clientId
+        resValue "string", "auth0_domain_name", domain
     }
 
     buildTypes {

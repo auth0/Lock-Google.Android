@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.auth0.googleplus;
+package com.auth0.google;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -33,7 +33,6 @@ import android.util.Log;
 import com.auth0.core.Strategies;
 import com.auth0.identity.IdentityProvider;
 import com.auth0.identity.IdentityProviderCallback;
-import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.GooglePlayServicesAvailabilityException;
 import com.google.android.gms.auth.UserRecoverableAuthException;

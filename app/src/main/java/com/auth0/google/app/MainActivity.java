@@ -22,10 +22,13 @@
  * THE SOFTWARE.
  */
 
-package com.auth0.googleplus.testapp;
+package com.auth0.google.app;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -40,16 +43,16 @@ import com.auth0.core.Auth0;
 import com.auth0.core.Strategies;
 import com.auth0.core.Token;
 import com.auth0.core.UserProfile;
-import com.auth0.googleplus.GooglePlusIdentityProvider;
+import com.auth0.google.GoogleIdentityProvider;
 import com.auth0.identity.IdentityProviderCallback;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getName();
 
-    GooglePlusIdentityProvider provider;
-
-    boolean authRequestInProgress;
+    private GoogleIdentityProvider provider;
+    private boolean authRequestInProgress;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,21 +64,23 @@ public class MainActivity extends AppCompatActivity {
         Auth0 auth0 = new Auth0(getString(R.string.auth0_client_id), getString(R.string.auth0_domain_name));
         final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
 
-        provider = new GooglePlusIdentityProvider(MainActivity.this);
+        provider = new GoogleIdentityProvider(MainActivity.this);
         provider.setCallback(new IdentityProviderCallback() {
             @Override
             public void onFailure(Dialog dialog) {
-                Log.d(TAG, "onFailure, showing dialog...");
+                dismissProgress();
+                Log.e(TAG, "Failed with dialog");
 
-                textView.setText("");
+                textView.setText(null);
                 dialog.show();
             }
 
             @Override
             public void onFailure(int titleResource, int messageResource, Throwable cause) {
-                Log.d(TAG, "onFailure, titleResource: " + titleResource + ", messageResource: " + messageResource + ", cause: " + cause);
+                dismissProgress();
+                Log.e(TAG, "Failed with message " + getString(messageResource), cause);
 
-                textView.setText("");
+                textView.setText(null);
                 AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
                         .setTitle(titleResource)
                         .setMessage(messageResource)
@@ -85,19 +90,21 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(String serviceName, String accessToken) {
-                Log.d(TAG, "onSuccess, serviceName: " + serviceName + ", accessToken: " + accessToken);
+                Log.d(TAG, "Authenticated with connection name " + serviceName + " accessToken " + accessToken);
 
-                textView.setText("Trying to log in with GooglePlus token: " + accessToken);
+                progressDialog.setMessage(getString(R.string.progress_auth0));
 
                 AuthenticationRequest request = client.loginWithOAuthAccessToken(accessToken, serviceName);
                 request.start(new AuthenticationCallback() {
                     @Override
                     public void onSuccess(UserProfile profile, Token token) {
+                        dismissProgress();
                         textView.setText("Welcome " + profile.getName());
                     }
 
                     @Override
                     public void onFailure(Throwable error) {
+                        dismissProgress();
                         textView.setText("Log in failed. " + error.getMessage());
                     }
                 });
@@ -105,9 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(Token token) {
-                Log.d(TAG, "onSuccess, token: " + token);
-
-                textView.setText("Logged in with token: " + token);
+                dismissProgress();
+                Log.e(TAG, "Should not call this method");
             }
         });
 
@@ -118,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         authRequestInProgress = true;
                         provider.start(MainActivity.this, Strategies.GooglePlus.getName());
+                        progressDialog = ProgressDialog.show(MainActivity.this, getString(R.string.progress_title), getString(R.string.progress_message));
                     }
                 }
         );
@@ -141,8 +148,19 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         if (authRequestInProgress) {
-            provider.authorize(this, GooglePlusIdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE, 9876, getIntent());
-            authRequestInProgress = false;
+            authRequestInProgress = !provider.authorize(this, GoogleIdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE, Activity.RESULT_OK, getIntent());
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (provider != null) {
+            provider.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    private void dismissProgress() {
+        progressDialog.dismiss();
+        progressDialog = null;
     }
 }
