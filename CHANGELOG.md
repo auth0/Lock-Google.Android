@@ -1,5 +1,17 @@
 # Change Log
 
+## [2.4.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.4.0) (2016-03-18)
+[Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/2.3.0...2.4.0)
+
+**Closed issues:**
+
+- Google Play Services needs to be updated to 8.1.0 [\#11](https://github.com/auth0/Lock-GooglePlus.Android/issues/11)
+
+**Merged pull requests:**
+
+- handle M permissions before start [\#17](https://github.com/auth0/Lock-GooglePlus.Android/pull/17) ([lbalmaceda](https://github.com/lbalmaceda))
+- Move src to separate module and add test-app module [\#15](https://github.com/auth0/Lock-GooglePlus.Android/pull/15) ([nikolaseu](https://github.com/nikolaseu))
+
 ## [2.3.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.3.0) (2015-11-13)
 [Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/2.2.0...2.3.0)
 

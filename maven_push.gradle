@@ -67,13 +67,14 @@ artifacts {
     archives sourcesJar
 }
 
-ext.bintrayProps = loadProperties('local.properties')
-
-if (ext.bintrayProps) {
+if (hasProperty('bintray.user') && hasProperty('bintray.key') && hasProperty('bintray.gpg.password')) {
     apply plugin: 'com.jfrog.bintray'
+    def bintrayUser = getProperty('bintray.user')
+    def bintrayApiKey = getProperty('bintray.key')
+    def bintrayPassphrase = getProperty('bintray.gpg.password')
     bintray {
-        user = bintrayProps.getProperty("bintray.user")
-        key = bintrayProps.getProperty("bintray.apikey")
+        user = bintrayUser
+        key = bintrayApiKey
         configurations = ['archives']
         dryRun = version.endsWith("-SNAPSHOT")
         publish = false
@@ -89,7 +90,7 @@ if (ext.bintrayProps) {
             version {
                 gpg {
                     sign = true //Determines whether to GPG sign the files. The default is false
-                    passphrase = bintrayProps.getProperty("bintray.gpg.password") //Optional. The passphrase for GPG signing'
+                    passphrase = bintrayPassphrase
                 }
                 vcsTag = VERSION_NAME
                 name = VERSION_NAME
