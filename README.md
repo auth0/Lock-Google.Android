@@ -30,30 +30,56 @@ If you also have a Web Application, and a Google clientID & secret for it config
 The Lock-GooglePlus is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
 
 ```gradle
-compile 'com.auth0.android:lock-googleplus:2.3.+'
+compile 'com.auth0.android:lock-googleplus:2.4.+'
 ```
 
-Then in your project's `AndroidManifest.xml` add the following entries:
+Then in your project's `AndroidManifest.xml` add the following entry:
+
+```xml
+<meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+```
+
+### Android Permissions
+
+#### Using API Level 23 (Android Marshmallow)
+
+> [Lock](https://github.com/auth0/Lock.Android) already does this for you, so you can skip this section
+
+Implement the following method in your Activity
+
+```java
+ @Override
+ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    if (provider != null) {
+        provider.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+ }
+```
+
+where `provider` is your instance of `GoogleIdentityProvider`
+
+#### Using API Level 22 or lower
 
 ```xml
 <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 <uses-permission android:name="android.permission.USE_CREDENTIALS" />
-<meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
 ```
+
+> These permissions should be added even if you are using [Lock](https://github.com/auth0/Lock.Android)
 
 ## Usage
 
-Just create a new instance of `GooglePlusIdentityProvider`
+Just create a new instance of `GoogleIdentityProvider`
 
 ```java
-GooglePlusIdentityProvider googleplus = new GooglePlusIdentityProvider();
+GoogleIdentityProvider google = new GoogleIdentityProvider();
 ```
 
 and register it with your instance of `Lock`
 
 ```java
 Lock lock = ...;
-lock.setProvider(Strategies.GooglePlus.getName(), googleplus);
+lock.setProvider("{google connection name}", google);
 ```
 
 ## Issue Reporting
