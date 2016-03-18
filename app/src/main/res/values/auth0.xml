@@ -24,6 +24,6 @@
   -->
 
 <resources>
-    <string name="auth0_client_id">clientId</string>
-    <string name="auth0_domain_name">domain</string>
+    <string name="auth0_client_id">U5MhUrbyQHSVWjlEqZSTCBUFABLbJAS3</string>
+    <string name="auth0_domain_name">overmind.auth0.com</string>
 </resources>

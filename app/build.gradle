@@ -5,11 +5,11 @@ android {
     buildToolsVersion compile.buildToolsVersion
 
     defaultConfig {
-        applicationId "com.auth0.googleplus.testapp"
+        applicationId "com.auth0.google.app"
         minSdkVersion compile.minSdk
         targetSdkVersion compile.maxSdk
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
     }
 
     buildTypes {
