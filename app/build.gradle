@@ -10,6 +10,8 @@ android {
         targetSdkVersion compile.maxSdk
         versionCode 1
         versionName "1.0.0"
+        resValue "string", "auth0_client_id", getProperty("com.auth0.account.clientId")
+        resValue "string", "auth0_domain_name", getProperty("com.auth0.account.domain")
     }
 
     buildTypes {
