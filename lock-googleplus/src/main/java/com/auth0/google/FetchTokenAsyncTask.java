@@ -24,9 +24,11 @@
 
 package com.auth0.google;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.os.AsyncTask;
+import android.support.annotation.RequiresPermission;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -55,6 +57,7 @@ public class FetchTokenAsyncTask extends AsyncTask<String, Void, Object> {
         this.callback = callback;
     }
 
+    @RequiresPermission(Manifest.permission.GET_ACCOUNTS)
     @Override
     protected Object doInBackground(String... params) {
         FetchTokenResultHolder holder = null;
