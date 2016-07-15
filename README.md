@@ -45,7 +45,7 @@ Then in your project's `AndroidManifest.xml` add the following entry:
 
 > [Lock](https://github.com/auth0/Lock.Android) already does this for you, so you can skip this section
 
-Implement the following method in your Activity
+Make your Activity implement `ActivityCompay.OnRequestPermissionsResultCallback` interface.
 
 ```java
  @Override
