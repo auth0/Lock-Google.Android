@@ -15,17 +15,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    lintOptions {
-        lintConfig file('../gradle/lint.xml')
-    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile libraries.lock_identity_core
     compile libraries.app_compat
-    compile libraries.google_play_services_plus
+    compile 'com.google.android.gms:play-services-auth:9.2.1'
+    compile 'com.auth0.android:auth0:1.0.0-beta.2'
 }
 
 apply from: '../maven_push.gradle'
