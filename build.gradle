@@ -20,8 +20,6 @@ allprojects {
 }
 
 ext.libraries = [
-        lock_identity_core: 'com.auth0.android:identity-core:1.17.1',
-        google_play_services_plus: 'com.google.android.gms:play-services-plus:8.4.0',
         app_compat: 'com.android.support:appcompat-v7:24.1.1',
         testing: [
             dependencies.create('junit:junit:4.11') {
@@ -41,6 +39,6 @@ ext.libraries = [
 
 ext.compile = [
         minSdk: 15,
-        maxSdk: 23,
+        maxSdk: 24,
         buildToolsVersion: '23.0.2'
 ]
