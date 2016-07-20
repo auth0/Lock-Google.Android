@@ -70,39 +70,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         provider = new GoogleAuthProvider(client);
         callback = new AuthCallback() {
             @Override
-            public void onFailure(@NonNull Dialog dialog) {
+            public void onFailure(@NonNull final Dialog dialog) {
                 Log.e(TAG, "Failed with dialog");
-                setMessage("Failed with dialog");
-                dialog.show();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        dialog.show();
+                    }
+                });
             }
 
             @Override
-            public void onFailure(@StringRes int titleResource, @StringRes int messageResource, Throwable cause) {
+            public void onFailure(@StringRes final int titleResource, @StringRes final int messageResource, Throwable cause) {
                 Log.e(TAG, "Failed with message " + getString(messageResource), cause);
-                setMessage("Failed with message " + getString(messageResource));
-                AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(titleResource)
-                        .setMessage(messageResource)
-                        .create();
-                dialog.show();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
+                                .setTitle(titleResource)
+                                .setMessage(messageResource)
+                                .create();
+                        dialog.show();
+                    }
+                });
             }
 
             @Override
-            public void onSuccess(@NonNull Credentials credentials) {
+            public void onSuccess(@NonNull final Credentials credentials) {
                 Log.d(TAG, "Authenticated with accessToken " + credentials.getAccessToken());
-                setMessage(String.format("Welcome %s", credentials.getAccessToken()));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        message.setText(String.format("Welcome %s", credentials.getAccessToken()));
+                    }
+                });
             }
 
         };
-    }
-
-    private void setMessage(final String text) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                message.setText(text);
-            }
-        });
     }
 
     @Override
@@ -114,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.logoutButton:
                 provider.clearSession();
-                setMessage("");
+                message.setText("");
                 break;
         }
     }
