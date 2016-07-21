@@ -13,23 +13,24 @@ import com.auth0.android.callback.AuthenticationCallback;
 import com.auth0.android.provider.AuthProvider;
 import com.auth0.android.result.Credentials;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
 
 
 public class GoogleAuthProvider extends AuthProvider {
 
     private static final String TAG = GoogleAuthProvider.class.getSimpleName();
-    private static final int REQUEST_RESOLVE_ERROR = 1001;
+    static final int REQUEST_RESOLVE_ERROR = 1001;
+
     private final AuthenticationAPIClient auth0Client;
     private final String serverClientId;
-
     private Scope[] scopes;
     private GoogleAPIHelper apiHelper;
 
     public GoogleAuthProvider(@NonNull AuthenticationAPIClient client, @NonNull String serverClientId) {
         this.auth0Client = client;
         this.serverClientId = serverClientId;
-        this.scopes = new Scope[]{};
+        this.scopes = new Scope[]{new Scope(Scopes.PLUS_LOGIN)};
     }
 
     /**
@@ -42,13 +43,9 @@ public class GoogleAuthProvider extends AuthProvider {
         this.scopes = scope;
     }
 
-    Scope[] getScopes() {
-        return scopes;
-    }
-
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
-        apiHelper = new GoogleAPIHelper(activity, serverClientId, scopes, tokenListener);
+        apiHelper = createAPIHelper(activity);
         final int availabilityStatus = apiHelper.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
             apiHelper.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
@@ -105,7 +102,15 @@ public class GoogleAuthProvider extends AuthProvider {
                 });
     }
 
-    private final TokenListener tokenListener = new TokenListener() {
+    Scope[] getScopes() {
+        return scopes;
+    }
+
+    GoogleAPIHelper createAPIHelper(Activity activity) {
+        return new GoogleAPIHelper(activity, serverClientId, scopes, tokenListener);
+    }
+
+    final TokenListener tokenListener = new TokenListener() {
         @Override
         public void onTokenReceived(String token) {
             requestAuth0Token(token);

@@ -15,7 +15,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
@@ -32,7 +31,7 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
     private int signInRequestCode;
     private int errorResolutionRequestCode;
 
-    public GoogleAPIHelper(@NonNull Activity activity, @NonNull String serverClientId, Scope[] scopes, @NonNull TokenListener tokenListener) {
+    public GoogleAPIHelper(@NonNull Activity activity, @NonNull String serverClientId, @NonNull Scope[] scopes, @NonNull TokenListener tokenListener) {
         this.activity = activity;
         this.tokenListener = tokenListener;
         this.client = createGoogleAPIClient(serverClientId, scopes);
@@ -133,12 +132,16 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
     }
 
     private GoogleApiClient createGoogleAPIClient(String serverClientId, Scope[] scopes) {
-        final GoogleSignInOptions gso = new GoogleSignInOptions.Builder()
-                .requestIdToken(serverClientId)
-                .requestScopes(new Scope(Scopes.PLUS_LOGIN), scopes)
-                .build();
+        final GoogleSignInOptions.Builder gsoBuilder = new GoogleSignInOptions.Builder()
+                .requestIdToken(serverClientId);
+        if (scopes.length == 1) {
+            gsoBuilder.requestScopes(scopes[0]);
+        } else if (scopes.length > 1) {
+            gsoBuilder.requestScopes(scopes[0], scopes);
+        }
+
         final GoogleApiClient.Builder builder = new GoogleApiClient.Builder(activity, this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso);
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gsoBuilder.build());
 
         return builder.build();
     }
