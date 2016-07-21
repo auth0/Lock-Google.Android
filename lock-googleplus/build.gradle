@@ -19,6 +19,10 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+
+    lintOptions {
+        lintConfig file('../gradle/lint.xml')
+    }
 }
 
 dependencies {
