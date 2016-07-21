@@ -190,4 +190,18 @@ public class GoogleAuthProviderTest {
         assertThat(credentialsCaptor.getValue(), is(instanceOf(Credentials.class)));
     }
 
+    @Test
+    public void shouldLogoutOnClearSession() {
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        provider.clearSession();
+        Mockito.verify(apiHelper).logoutAndClearState();
+    }
+
+    @Test
+    public void shouldLogoutOnStop() {
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        provider.stop();
+        Mockito.verify(apiHelper).logoutAndClearState();
+    }
+
 }
