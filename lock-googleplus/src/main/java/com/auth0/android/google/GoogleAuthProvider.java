@@ -2,10 +2,7 @@ package com.auth0.android.google;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -15,78 +12,56 @@ import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.callback.AuthenticationCallback;
 import com.auth0.android.provider.AuthProvider;
 import com.auth0.android.result.Credentials;
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.Scopes;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.common.api.Status;
 
 
-public class GoogleAuthProvider extends AuthProvider implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class GoogleAuthProvider extends AuthProvider {
 
     private static final String TAG = GoogleAuthProvider.class.getSimpleName();
     private static final int REQUEST_RESOLVE_ERROR = 1001;
     private final AuthenticationAPIClient auth0Client;
+    private final String serverClientId;
 
-    private boolean resolvingError = false;
-    private int signInRequestCode;
     private Scope[] scopes;
-    private GoogleApiClient googleClient;
-    private Activity activity;
+    private GoogleAPIHelper apiHelper;
 
-    public GoogleAuthProvider(AuthenticationAPIClient client) {
+    public GoogleAuthProvider(@NonNull AuthenticationAPIClient client, @NonNull String serverClientId) {
         this.auth0Client = client;
+        this.serverClientId = serverClientId;
         this.scopes = new Scope[]{};
     }
 
     /**
-     * Change the scopes to request on the user login. Use any of the scopes defined in the com.google.android.gms.common.Scopes class.
+     * Change the scopes to request on the user login. Use any of the scopes defined in the com.google.android.gms.common.Scopes class. Must be called before requestAuth().
      * The scope Scopes.PLUG_LOGIN is requested by default.
      *
      * @param scope the scope to add to the request
      */
-    public void setScopes(Scope... scope) {
+    public void setScopes(@NonNull Scope... scope) {
         this.scopes = scope;
+    }
+
+    Scope[] getScopes() {
+        return scopes;
     }
 
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
-        final int availabilityStatus = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(activity);
+        apiHelper = new GoogleAPIHelper(activity, serverClientId, scopes, tokenListener);
+        final int availabilityStatus = apiHelper.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
-            this.googleClient = createGoogleAPIClient(activity);
-            this.activity = activity;
-            signInRequestCode = requestCode;
-            connectAndGetGoogleAccount();
+            apiHelper.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
             return;
         }
 
         Log.w(TAG, "Google services availability failed with status " + availabilityStatus);
-        callback.onFailure(GoogleApiAvailability.getInstance().getErrorDialog(activity, availabilityStatus, 0));
+        callback.onFailure(apiHelper.getErrorDialog(availabilityStatus, REQUEST_RESOLVE_ERROR));
     }
 
     @Override
     public boolean authorize(int requestCode, int resultCode, @Nullable Intent intent) {
-        if (requestCode == REQUEST_RESOLVE_ERROR) {
-            resolvingError = false;
-            if (resultCode == Activity.RESULT_OK) {
-                connectAndGetGoogleAccount();
-            }
-            return true;
-        } else if (requestCode == signInRequestCode) {
-            if (resultCode == Activity.RESULT_OK) {
-                final GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(intent);
-                if (result.isSuccess()) {
-                    requestAuth0Token(result.getSignInAccount().getIdToken());
-                }
-            }
-            return true;
-        }
-        return false;
+        return apiHelper.parseSignInResult(requestCode, resultCode, intent);
     }
 
     @Override
@@ -109,59 +84,10 @@ public class GoogleAuthProvider extends AuthProvider implements GoogleApiClient.
     @Override
     public void clearSession() {
         super.clearSession();
-        try {
-            Auth.GoogleSignInApi.signOut(googleClient).setResultCallback(new ResultCallback<Status>() {
-                @Override
-                public void onResult(@NonNull Status status) {
-                    if (!status.isSuccess()) {
-                        Log.w(TAG, "Couldn't clear account and credentials");
-                    }
-                }
-            });
-        } catch (IllegalStateException e) {
-            Log.e(TAG, "Failed to clear Google Plus Session", e);
-        } finally {
-            if (googleClient != null && googleClient.isConnected()) {
-                googleClient.disconnect();
-            }
-            activity = null;
-            googleClient = null;
+        if (apiHelper != null) {
+            apiHelper.logoutAndClearState();
+            apiHelper = null;
         }
-    }
-
-    private void showErrorDialog(int errorCode) {
-        final Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(activity, errorCode, REQUEST_RESOLVE_ERROR);
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialogInterface) {
-                resolvingError = false;
-            }
-        });
-        callback.onFailure(dialog);
-    }
-
-    private GoogleApiClient createGoogleAPIClient(Activity activity) {
-        final GoogleSignInOptions gso = new GoogleSignInOptions.Builder()
-                .requestIdToken("680447222598-gff97qkjdde6v8q3jbflc46lnsr96g6d.apps.googleusercontent.com")
-                .requestScopes(new Scope(Scopes.PLUS_LOGIN), scopes)
-                .build();
-        final GoogleApiClient.Builder builder = new GoogleApiClient.Builder(activity, this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso);
-
-        return builder.build();
-    }
-
-    private void connectAndGetGoogleAccount() {
-        if (googleClient.isConnected()) {
-            getGoogleAccount();
-        } else if (!googleClient.isConnecting()) {
-            googleClient.connect();
-        }
-    }
-
-    private void getGoogleAccount() {
-        final Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleClient);
-        activity.startActivityForResult(signInIntent, signInRequestCode);
     }
 
     private void requestAuth0Token(String token) {
@@ -179,31 +105,15 @@ public class GoogleAuthProvider extends AuthProvider implements GoogleApiClient.
                 });
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle connectionHint) {
-        connectAndGetGoogleAccount();
-    }
-
-    @Override
-    public void onConnectionSuspended(int code) {
-        Log.v(TAG, "Connection suspended with code: " + code);
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        if (resolvingError) {
-            // Already attempting to resolve an error.
-            return;
-        } else if (connectionResult.hasResolution()) {
-            try {
-                resolvingError = true;
-                connectionResult.startResolutionForResult(activity, REQUEST_RESOLVE_ERROR);
-            } catch (IntentSender.SendIntentException e) {
-                googleClient.connect();
-            }
-        } else {
-            showErrorDialog(connectionResult.getErrorCode());
-            resolvingError = true;
+    private final TokenListener tokenListener = new TokenListener() {
+        @Override
+        public void onTokenReceived(String token) {
+            requestAuth0Token(token);
         }
-    }
+
+        @Override
+        public void onErrorReceived(Dialog errorDialog) {
+            callback.onFailure(errorDialog);
+        }
+    };
 }

@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Auth0 auth0 = new Auth0(getString(R.string.com_auth0_client_id), getString(R.string.com_auth0_domain));
         final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
-        provider = new GoogleAuthProvider(client);
+        provider = new GoogleAuthProvider(client, getString(R.string.google_server_client_id));
         callback = new AuthCallback() {
             @Override
             public void onFailure(@NonNull final Dialog dialog) {
