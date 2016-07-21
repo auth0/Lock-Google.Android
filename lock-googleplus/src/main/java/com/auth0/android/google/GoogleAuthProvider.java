@@ -17,9 +17,15 @@ import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
 
 
+/**
+ * Native Google Sign In implementation of the Auth0 AuthProvider.
+ */
 public class GoogleAuthProvider extends AuthProvider {
 
     private static final String TAG = GoogleAuthProvider.class.getSimpleName();
+    /**
+     * Used internally to dispatch error resolver dialogs.
+     */
     static final int REQUEST_RESOLVE_ERROR = 1001;
 
     private final AuthenticationAPIClient auth0Client;
@@ -27,6 +33,10 @@ public class GoogleAuthProvider extends AuthProvider {
     private Scope[] scopes;
     private GoogleAPIHelper apiHelper;
 
+    /**
+     * @param client an Auth0 AuthenticationAPIClient instance
+     * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
+     */
     public GoogleAuthProvider(@NonNull AuthenticationAPIClient client, @NonNull String serverClientId) {
         this.auth0Client = client;
         this.serverClientId = serverClientId;

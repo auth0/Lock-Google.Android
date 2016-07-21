@@ -20,6 +20,9 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 
+/**
+ * Helper class to wrap all the GoogleApiClient and GoogleApiAvailability calls.
+ */
 class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = GoogleAPIHelper.class.getSimpleName();
@@ -31,6 +34,12 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
     private int signInRequestCode;
     private int errorResolutionRequestCode;
 
+    /**
+     * @param activity       a valid activity context to use
+     * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
+     * @param scopes         the list of scopes to request to the Google Auth API.
+     * @param tokenListener  to notify token reception and occurred errors.
+     */
     public GoogleAPIHelper(@NonNull Activity activity, @NonNull String serverClientId, @NonNull Scope[] scopes, @NonNull TokenListener tokenListener) {
         this.activity = activity;
         this.tokenListener = tokenListener;
@@ -53,6 +62,7 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
             // Already attempting to resolve an error.
             return;
         } else if (connectionResult.hasResolution()) {
+            Log.v(TAG, "Connection failed. Trying to start the resolution.");
             try {
                 resolvingError = true;
                 connectionResult.startResolutionForResult(activity, errorResolutionRequestCode);
@@ -60,15 +70,28 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
                 client.connect();
             }
         } else {
+            Log.v(TAG, "Connection failed. No resolution was possible.");
             tokenListener.onErrorReceived(getErrorDialog(connectionResult.getErrorCode(), errorResolutionRequestCode));
             resolvingError = true;
         }
     }
 
+    /**
+     * Checks if the Google Play Services required package is available in the device.
+     *
+     * @return a code int explaining whether the package is available or not.
+     */
     public int isGooglePlayServicesAvailable() {
         return GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(activity);
     }
 
+    /**
+     * Helper to create a new dialog from an error code.
+     *
+     * @param errorCode   the code int to explain
+     * @param requestCode the request code to use when you expect the result.
+     * @return a new dialog instance ready to show
+     */
     public Dialog getErrorDialog(int errorCode, int requestCode) {
         final Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(activity, errorCode, requestCode);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -80,6 +103,12 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
         return dialog;
     }
 
+    /**
+     * Checks if the Google API Client is connected and tries to request the user Account.
+     *
+     * @param signInRequestCode          the request code to use when you expect the sign in result.
+     * @param errorResolutionRequestCode the request code to use when you expect the erorr resolution result.
+     */
     public void connectAndRequestGoogleAccount(int signInRequestCode, int errorResolutionRequestCode) {
         if (client.isConnected()) {
             requestGoogleAccount(signInRequestCode);
@@ -90,6 +119,15 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
         }
     }
 
+    /**
+     * Given the data received in the activity.onActivityResult() call, tries to parse the
+     * content to figure out if it's an error resolution result or a sign up result.
+     *
+     * @param requestCode request code received
+     * @param resultCode  result code received
+     * @param intent      intent received
+     * @return whether the data was handled by this provider or not.
+     */
     public boolean parseSignInResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == errorResolutionRequestCode) {
             resolvingError = false;
@@ -110,6 +148,10 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
         return false;
     }
 
+    /**
+     * Logs out the user and clears the account.
+     * After this method is called the provider should not be used.
+     */
     public void logoutAndClearState() {
         try {
             Auth.GoogleSignInApi.signOut(client).setResultCallback(new ResultCallback<Status>() {
