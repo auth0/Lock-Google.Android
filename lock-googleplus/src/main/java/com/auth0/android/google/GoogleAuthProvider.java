@@ -31,16 +31,18 @@ public class GoogleAuthProvider extends AuthProvider {
     private final AuthenticationAPIClient auth0Client;
     private final String serverClientId;
     private Scope[] scopes;
+    private String connectionName;
     private GoogleAPIHelper apiHelper;
 
     /**
-     * @param client an Auth0 AuthenticationAPIClient instance
+     * @param client         an Auth0 AuthenticationAPIClient instance
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      */
     public GoogleAuthProvider(@NonNull AuthenticationAPIClient client, @NonNull String serverClientId) {
         this.auth0Client = client;
         this.serverClientId = serverClientId;
         this.scopes = new Scope[]{new Scope(Scopes.PLUS_LOGIN)};
+        this.connectionName = "google-oauth2";
     }
 
     /**
@@ -51,6 +53,15 @@ public class GoogleAuthProvider extends AuthProvider {
      */
     public void setScopes(@NonNull Scope... scope) {
         this.scopes = scope;
+    }
+
+    /**
+     * Change the default connection to use when requesting the token to Auth0 server. By default this value is "google-oauth2".
+     *
+     * @param connection that will be used to authenticate the user against Auth0.
+     */
+    public void setConnection(@NonNull String connection) {
+        this.connectionName = connection;
     }
 
     @Override
@@ -114,6 +125,10 @@ public class GoogleAuthProvider extends AuthProvider {
 
     Scope[] getScopes() {
         return scopes;
+    }
+
+    String getConnection() {
+        return connectionName;
     }
 
     GoogleAPIHelper createAPIHelper(Activity activity) {

@@ -13,8 +13,10 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
 
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsArrayContaining;
 import org.hamcrest.collection.IsArrayWithSize;
+import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +32,7 @@ import static org.junit.Assert.assertThat;
 
 public class GoogleAuthProviderTest {
 
+    private static final String CONNECTION_NAME = "google-oauth2";
     private static final int AUTH_REQ_CODE = 123;
     private static final int PERMISSION_REQ_CODE = 122;
     private static final String SERVER_CLIENT_ID = "server_client_id";
@@ -75,6 +78,23 @@ public class GoogleAuthProviderTest {
     public void shouldHaveDefaultScope() throws Exception {
         assertThat(provider.getScopes(), is(arrayWithSize(1)));
         assertThat(provider.getScopes()[0].toString(), is(new Scope(Scopes.PLUS_LOGIN).toString()));
+    }
+
+    @Test
+    public void shouldSetConnectionName() throws Exception {
+        provider.setConnection("my-custom-connection");
+
+        MatcherAssert.assertThat(provider.getConnection(), Is.is("my-custom-connection"));
+    }
+
+    @Test
+    public void shouldHaveNonNullConnectionName() throws Exception {
+        MatcherAssert.assertThat(provider.getConnection(), Is.is(notNullValue()));
+    }
+
+    @Test
+    public void shouldHaveDefaultConnectionName() throws Exception {
+        MatcherAssert.assertThat(provider.getConnection(), Is.is(CONNECTION_NAME));
     }
 
     @Test
@@ -140,10 +160,10 @@ public class GoogleAuthProviderTest {
     public void shouldCallAuth0OAuthEndpointWhenGoogleTokenIsReceived() {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
-        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, "google-oauth2")).thenReturn(request);
+        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(request);
         provider.tokenListener.onTokenReceived(TOKEN);
 
-        Mockito.verify(client).loginWithOAuthAccessToken(TOKEN, "google-oauth2");
+        Mockito.verify(client).loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME);
     }
 
     @Test
@@ -158,7 +178,7 @@ public class GoogleAuthProviderTest {
     @Test
     public void shouldFailWithTextWhenCredentialsRequestFailed() {
         final AuthenticationRequest authRequest = new AuthenticationRequestMock(false);
-        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, "google-oauth2"))
+        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME))
                 .thenReturn(authRequest);
 
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
@@ -176,7 +196,7 @@ public class GoogleAuthProviderTest {
     @Test
     public void shouldSucceedIfCredentialsRequestSucceeded() {
         final AuthenticationRequest authRequest = new AuthenticationRequestMock(true);
-        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, "google-oauth2"))
+        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME))
                 .thenReturn(authRequest);
 
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
