@@ -167,6 +167,17 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
+    public void shouldCallAuth0OAuthEndpointWithCustomConnectionNameWhenGoogleTokenIsReceived() {
+        provider.setConnection("my-custom-connection");
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
+        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, "my-custom-connection")).thenReturn(request);
+        provider.tokenListener.onTokenReceived(TOKEN);
+
+        Mockito.verify(client).loginWithOAuthAccessToken(TOKEN, "my-custom-connection");
+    }
+
+    @Test
     public void shouldFailWithDialogWhenErrorOcurred() {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         Dialog dialog = Mockito.mock(Dialog.class);

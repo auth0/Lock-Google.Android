@@ -109,7 +109,7 @@ public class GoogleAuthProvider extends AuthProvider {
     }
 
     private void requestAuth0Token(String token) {
-        auth0Client.loginWithOAuthAccessToken(token, "google-oauth2")
+        auth0Client.loginWithOAuthAccessToken(token, connectionName)
                 .start(new AuthenticationCallback<Credentials>() {
                     @Override
                     public void onSuccess(Credentials credentials) {
@@ -132,18 +132,20 @@ public class GoogleAuthProvider extends AuthProvider {
     }
 
     GoogleAPIHelper createAPIHelper(Activity activity) {
-        return new GoogleAPIHelper(activity, serverClientId, scopes, tokenListener);
+        return new GoogleAPIHelper(activity, serverClientId, scopes, createTokenListener());
     }
 
-    final TokenListener tokenListener = new TokenListener() {
-        @Override
-        public void onTokenReceived(String token) {
-            requestAuth0Token(token);
-        }
+    TokenListener createTokenListener() {
+        return new TokenListener() {
+            @Override
+            public void onTokenReceived(String token) {
+                requestAuth0Token(token);
+            }
 
-        @Override
-        public void onErrorReceived(Dialog errorDialog) {
-            callback.onFailure(errorDialog);
-        }
-    };
+            @Override
+            public void onErrorReceived(Dialog errorDialog) {
+                callback.onFailure(errorDialog);
+            }
+        };
+    }
 }
