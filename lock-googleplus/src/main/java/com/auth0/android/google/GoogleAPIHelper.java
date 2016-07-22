@@ -20,6 +20,10 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Helper class to wrap all the GoogleApiClient and GoogleApiAvailability calls.
  */
@@ -27,7 +31,7 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
 
     private static final String TAG = GoogleAPIHelper.class.getSimpleName();
     private Activity activity;
-    private final TokenListener tokenListener;
+    private final GoogleCallback googleCallback;
 
     private GoogleApiClient client;
     private boolean resolvingError;
@@ -38,11 +42,11 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
      * @param activity       a valid activity context to use
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      * @param scopes         the list of scopes to request to the Google Auth API.
-     * @param tokenListener  to notify token reception and occurred errors.
+     * @param googleCallback  to notify token reception and occurred errors.
      */
-    public GoogleAPIHelper(@NonNull Activity activity, @NonNull String serverClientId, @NonNull Scope[] scopes, @NonNull TokenListener tokenListener) {
+    public GoogleAPIHelper(@NonNull Activity activity, @NonNull String serverClientId, @NonNull Scope[] scopes, @NonNull GoogleCallback googleCallback) {
         this.activity = activity;
-        this.tokenListener = tokenListener;
+        this.googleCallback = googleCallback;
         this.client = createGoogleAPIClient(serverClientId, scopes);
     }
 
@@ -71,7 +75,7 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
             }
         } else {
             Log.v(TAG, "Connection failed. No resolution was possible.");
-            tokenListener.onErrorReceived(getErrorDialog(connectionResult.getErrorCode(), errorResolutionRequestCode));
+            googleCallback.onError(getErrorDialog(connectionResult.getErrorCode(), errorResolutionRequestCode));
             resolvingError = true;
         }
     }
@@ -139,7 +143,9 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
             if (resultCode == Activity.RESULT_OK) {
                 final GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(intent);
                 if (result.isSuccess()) {
-                    tokenListener.onTokenReceived(result.getSignInAccount().getIdToken());
+                    googleCallback.onSuccess(result.getSignInAccount());
+                } else if (result.getStatus().isCanceled()) {
+                    googleCallback.onCancel();
                 }
             }
             return true;

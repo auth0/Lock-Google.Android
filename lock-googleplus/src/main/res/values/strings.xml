@@ -2,4 +2,6 @@
 <resources>
     <string name="com_auth0_google_authentication_failed_title">Failed to authenticate with Google</string>
     <string name="com_auth0_google_authentication_failed_message">Couldn\'t login with your phone\'s Google Account</string>
+    <string name="com_auth0_google_authentication_failed_missing_permissions_message">Some of the requested permissions were not granted.</string>
+    <string name="com_auth0_google_authentication_cancelled_error_message">You need to authorize the application</string>
 </resources>

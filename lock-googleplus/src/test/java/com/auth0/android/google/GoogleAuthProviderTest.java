@@ -3,12 +3,14 @@ package com.auth0.android.google;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 
 import com.auth0.android.authentication.AuthenticationAPIClient;
 import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.request.AuthenticationRequest;
 import com.auth0.android.result.Credentials;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
@@ -23,10 +25,18 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.internal.verification.VerificationModeFactory;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import edu.emory.mathcs.backport.java.util.Arrays;
+import edu.emory.mathcs.backport.java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.collection.IsArrayWithSize.arrayWithSize;
 import static org.junit.Assert.assertThat;
 
@@ -151,17 +161,46 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldNotRequirePermissions() {
+    public void shouldNotRequireAndroidPermissions() {
         assertThat(provider.getRequiredAndroidPermissions(), is(notNullValue()));
         assertThat(provider.getRequiredAndroidPermissions(), is(IsArrayWithSize.<String>emptyArray()));
     }
+
+    @Test
+    public void shouldNotCallAuth0OAuthEndpointWhenSomeScopesWereRejected() {
+        provider.setScopes(new Scope("some-scope"));
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
+        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(request);
+        provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, Collections.emptySet()));
+
+        Mockito.verify(client, VerificationModeFactory.noMoreInteractions()).loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME);
+    }
+
+    @Test
+    public void shouldFailWithTextWhenSomeScopesWereRejected() {
+        provider.setScopes(new Scope("some-scope"));
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
+        Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(request);
+        provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, Collections.emptySet()));
+
+        ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
+        ArgumentCaptor<Integer> titleResCaptor = ArgumentCaptor.forClass(Integer.class);
+        ArgumentCaptor<Integer> messageResCaptor = ArgumentCaptor.forClass(Integer.class);
+        Mockito.verify(callback).onFailure(titleResCaptor.capture(), messageResCaptor.capture(), throwableCaptor.capture());
+        MatcherAssert.assertThat(throwableCaptor.getValue(), Is.is(nullValue()));
+        MatcherAssert.assertThat(titleResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_failed_title));
+        MatcherAssert.assertThat(messageResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_failed_missing_permissions_message));
+    }
+
 
     @Test
     public void shouldCallAuth0OAuthEndpointWhenGoogleTokenIsReceived() {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
         Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(request);
-        provider.tokenListener.onTokenReceived(TOKEN);
+        provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<Scope>(Arrays.asList(provider.getScopes()))));
 
         Mockito.verify(client).loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME);
     }
@@ -172,18 +211,32 @@ public class GoogleAuthProviderTest {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
         Mockito.when(client.loginWithOAuthAccessToken(TOKEN, "my-custom-connection")).thenReturn(request);
-        provider.tokenListener.onTokenReceived(TOKEN);
+        provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<Scope>(Arrays.asList(provider.getScopes()))));
 
         Mockito.verify(client).loginWithOAuthAccessToken(TOKEN, "my-custom-connection");
     }
 
     @Test
-    public void shouldFailWithDialogWhenErrorOcurred() {
+    public void shouldFailWithDialogWhenErrorOccurred() {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         Dialog dialog = Mockito.mock(Dialog.class);
-        provider.tokenListener.onErrorReceived(dialog);
+        provider.googleCallback.onError(dialog);
 
         Mockito.verify(callback).onFailure(dialog);
+    }
+
+    @Test
+    public void shouldFailWithTextWhenFacebookRequestIsCancelled() {
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        provider.googleCallback.onCancel();
+
+        ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
+        ArgumentCaptor<Integer> titleResCaptor = ArgumentCaptor.forClass(Integer.class);
+        ArgumentCaptor<Integer> messageResCaptor = ArgumentCaptor.forClass(Integer.class);
+        Mockito.verify(callback).onFailure(titleResCaptor.capture(), messageResCaptor.capture(), throwableCaptor.capture());
+        MatcherAssert.assertThat(throwableCaptor.getValue(), Is.is(nullValue()));
+        MatcherAssert.assertThat(titleResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_failed_title));
+        MatcherAssert.assertThat(messageResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_cancelled_error_message));
     }
 
     @Test
@@ -193,7 +246,7 @@ public class GoogleAuthProviderTest {
                 .thenReturn(authRequest);
 
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
-        provider.tokenListener.onTokenReceived(TOKEN);
+        provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<Scope>(Arrays.asList(provider.getScopes()))));
 
         ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
         ArgumentCaptor<Integer> titleResCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -211,7 +264,7 @@ public class GoogleAuthProviderTest {
                 .thenReturn(authRequest);
 
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
-        provider.tokenListener.onTokenReceived(TOKEN);
+        provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<Scope>(Arrays.asList(provider.getScopes()))));
 
         ArgumentCaptor<Credentials> credentialsCaptor = ArgumentCaptor.forClass(Credentials.class);
         Mockito.verify(callback).onSuccess(credentialsCaptor.capture());
@@ -231,6 +284,13 @@ public class GoogleAuthProviderTest {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.stop();
         Mockito.verify(apiHelper).logoutAndClearState();
+    }
+
+    private GoogleSignInAccount createGoogleSignInAccountFromToken(@NonNull String token, @NonNull Set<Scope> grantedScopes) {
+        final GoogleSignInAccount account = Mockito.mock(GoogleSignInAccount.class);
+        Mockito.when(account.getIdToken()).thenReturn(token);
+        Mockito.when(account.getGrantedScopes()).thenReturn(grantedScopes);
+        return account;
     }
 
 }

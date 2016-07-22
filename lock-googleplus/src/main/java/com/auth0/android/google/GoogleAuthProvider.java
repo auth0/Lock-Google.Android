@@ -12,9 +12,14 @@ import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.callback.AuthenticationCallback;
 import com.auth0.android.provider.AuthProvider;
 import com.auth0.android.result.Credentials;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -135,15 +140,30 @@ public class GoogleAuthProvider extends AuthProvider {
         return new GoogleAPIHelper(activity, serverClientId, scopes, createTokenListener());
     }
 
-    TokenListener createTokenListener() {
-        return new TokenListener() {
+    GoogleCallback createTokenListener() {
+        return new GoogleCallback() {
             @Override
-            public void onTokenReceived(String token) {
-                requestAuth0Token(token);
+            public void onSuccess(GoogleSignInAccount account) {
+                final Set<Scope> grantedScopes = account.getGrantedScopes();
+                final Set<Scope> requestedScopes = new HashSet<>(Arrays.asList(scopes));
+                if (grantedScopes.containsAll(requestedScopes)) {
+                    requestAuth0Token(account.getIdToken());
+                } else {
+                    final Set<Scope> notGrantedScopes = new HashSet<>(requestedScopes);
+                    notGrantedScopes.removeAll(grantedScopes);
+                    Log.w(TAG, "Some scopes were not granted: " + notGrantedScopes.toString());
+                    callback.onFailure(R.string.com_auth0_google_authentication_failed_title, R.string.com_auth0_google_authentication_failed_missing_permissions_message, null);
+                }
             }
 
             @Override
-            public void onErrorReceived(Dialog errorDialog) {
+            public void onCancel() {
+                Log.w(TAG, "User cancelled the log in dialog");
+                callback.onFailure(R.string.com_auth0_google_authentication_failed_title, R.string.com_auth0_google_authentication_cancelled_error_message, null);
+            }
+
+            @Override
+            public void onError(Dialog errorDialog) {
                 callback.onFailure(errorDialog);
             }
         };

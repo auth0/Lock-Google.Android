@@ -7,7 +7,7 @@ import com.auth0.android.authentication.AuthenticationAPIClient;
 
 public class GoogleAuthProviderMock extends GoogleAuthProvider {
     GoogleAPIHelper apiHelper;
-    TokenListener tokenListener;
+    GoogleCallback googleCallback;
 
     public GoogleAuthProviderMock(@NonNull AuthenticationAPIClient client, @NonNull String serverClientId, GoogleAPIHelper apiHelper) {
         super(client, serverClientId);
@@ -21,8 +21,8 @@ public class GoogleAuthProviderMock extends GoogleAuthProvider {
     }
 
     @Override
-    TokenListener createTokenListener() {
-        tokenListener = super.createTokenListener();
-        return tokenListener;
+    GoogleCallback createTokenListener() {
+        googleCallback = super.createTokenListener();
+        return googleCallback;
     }
 }
