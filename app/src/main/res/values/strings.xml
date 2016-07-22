@@ -3,7 +3,4 @@
     <string name="progress_message">Authenticating with Google</string>
     <string name="progress_title">Google Sign-In</string>
     <string name="progress_auth0">Trying to authenticate with Google token against Auth0</string>
-
-    <!--<string name="google_app_id" translatable="false">1:680447222598:android:0afe4b9c24de50f1</string>-->
-    <string name="google_api_key" translatable="false">AIzaSyD1Yelw_4GGZntQabgmr-LNjKmmeqcZUAw</string>
 </resources>
