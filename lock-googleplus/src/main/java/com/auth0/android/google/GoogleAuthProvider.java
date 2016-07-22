@@ -44,7 +44,7 @@ public class GoogleAuthProvider extends AuthProvider {
     }
 
     /**
-     * Change the scopes to request on the user login. Use any of the scopes defined in the com.google.android.gms.common.Scopes class. Must be called before requestAuth().
+     * Change the scopes to request on the user login. Use any of the scopes defined in the com.google.android.gms.common.Scopes class. Must be called before start().
      * The scope Scopes.PLUG_LOGIN is requested by default.
      *
      * @param scope the scope to add to the request

@@ -2,8 +2,4 @@
 <resources>
     <string name="com_auth0_google_authentication_failed_title">Failed to authenticate with Google</string>
     <string name="com_auth0_google_authentication_failed_message">Couldn\'t login with your phone\'s Google Account</string>
-    <string name="com_auth0_google_permission_failed_title">Google Sign-In</string>
-    <string name="com_auth0_google_permission_failed_message">We need access to your Google Account in order to authenticate with Google. Will you allow access to it?</string>
-    <string name="com_auth0_google_permission_declined_title">Access denied for Google Sign-In</string>
-    <string name="com_auth0_google_permission_declined_message">We need access to your Google Account in order to authenticate.</string>
 </resources>
