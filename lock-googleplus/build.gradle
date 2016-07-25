@@ -29,7 +29,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile libraries.app_compat
     compile 'com.google.android.gms:play-services-auth:9.2.1'
-    compile 'com.auth0.android:auth0:1.0.0-beta.2'
+    compile 'com.auth0.android:auth0:1.0.0-beta.3'
     testCompile libraries.testing
 }
 

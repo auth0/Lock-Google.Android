@@ -2,21 +2,21 @@
 
 [![Build Status](https://travis-ci.org/auth0/Lock-GooglePlus.Android.svg?branch=master)](https://travis-ci.org/auth0/Lock-GooglePlus.Android)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat)](http://doge.mit-license.org)
-[![Maven Central](https://img.shields.io/maven-central/v/com.auth0.android/lock-googleplus.svg)](http://search.maven.org/#browse%7C-2009911249)
-[ ![Download](https://api.bintray.com/packages/auth0/lock-android/lock-googleplus/images/download.svg) ](https://bintray.com/auth0/lock-android/lock-googleplus/_latestVersion)
+[![Maven Central](https://img.shields.io/maven-central/v/com.auth0.android/lock-googleplus.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.auth0.android%22%20AND%20a%3A%22lock-googleplus%22)
+[![Bintray](https://api.bintray.com/packages/auth0/lock-android/lock-googleplus/images/download.svg) ](https://bintray.com/auth0/lock-android/lock-googleplus/_latestVersion)
 
 [Auth0](https://auth0.com) is an authentication broker that supports social identity providers as well as enterprise identity providers such as Active Directory, LDAP, Google Apps and Salesforce.
 
 Lock-GooglePlus helps you integrate native Login with [Google+ Android SDK](https://developers.google.com/+/mobile/android/) and [Lock](https://auth0.com/lock)
 
-## Requierements
+## Requirements
 
-Android 4.0 or later & Google Play Services 8.+
+Android 4.0 or later & Google Play Services 9.+
 
 ## Before you start using Lock-Google
 
-In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your clientId.
-We recommend follwing Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then with your OAuth Mobile clientID from Google, the only step missing is to configure your Google Connection in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social) with your recenlty created Google clientId.
+In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your `web client id`.
+We recommend following Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then generate a new `OAuth 2.0 client id` for a Web Application in the [Credentials](https://console.developers.google.com/apis/credentials?project=_) page. Take the value and use it to configure your Google Connection's `Client ID` in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social). Save this value for later as it will be used in the android provider configuration.
 
 
 > For more information please check Google's [documentation](https://developers.google.com/identity/sign-in/android/)
@@ -39,48 +39,101 @@ Then in your project's `AndroidManifest.xml` add the following entry:
 <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
 ```
 
+
 ### Android Permissions
 
-#### Using API Level 23 (Android Marshmallow)
-
-> [Lock](https://github.com/auth0/Lock.Android) already does this for you, so you can skip this section
-
-Make your Activity implement `ActivityCompay.OnRequestPermissionsResultCallback` interface.
-
-```java
- @Override
- public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-    if (provider != null) {
-        provider.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
- }
-```
-
-where `provider` is your instance of `GoogleIdentityProvider`
-
-#### Using API Level 22 or lower
+In your project's `AndroidManifest.xml` add the following permission:
 
 ```xml
-<uses-permission android:name="android.permission.GET_ACCOUNTS" />
-<uses-permission android:name="android.permission.USE_CREDENTIALS" />
+<uses-permission android:name="android.permission.INTERNET" />
 ```
 
-> These permissions should be added even if you are using [Lock](https://github.com/auth0/Lock.Android)
+Google Sign-In does not require additional android permissions.
+
 
 ## Usage
 
-Just create a new instance of `GoogleIdentityProvider`
+
+### With Lock
+
+Create a new class and make it implement `AuthProviderResolver`. On the `onAuthProviderRequest` method compare the `connectionName` value against the connection you would like this provider to handle, and if it's a match return a new `GoogleAuthProvider` instance, with an `AuthenticationAPIClient` and the `server client id` obtained in the Project Credential's page.
 
 ```java
-GoogleIdentityProvider google = new GoogleIdentityProvider();
+public class AuthHandler implements AuthProviderResolver {
+
+    @Nullable
+    @Override
+    public AuthProvider onAuthProviderRequest(Context context, @NonNull AuthCallback callback, @NonNull String connectionName) {
+        AuthProvider provider = null;
+        if (connectionName.equals("google-oauth2")) {
+            Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
+            final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
+            provider = new GoogleAuthProvider(client, "google-server-client-id");
+        }
+        return provider;
+    }
+}
+
 ```
 
-and register it with your instance of `Lock`
+Make a new instance of your provider resolver and set it when building the Lock instance.
 
 ```java
-Lock lock = ...;
-lock.setProvider("{google connection name}", google);
+final AuthHandler authHandler = new AuthHandler(); 
+final Lock.Builder builder = Lock.newBuilder(getAccount(), callback);
+Lock lock = builder.withProviderResolver(authHandler);
+                //...
+                .build();
 ```
+
+That's it! When **Lock** needs to authenticate using that connection name, it will ask the `AuthProviderResolver` for a valid `AuthProvider`.
+
+### Without Lock
+
+Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `server client id` obtained in the Project Credential's page.
+
+```java
+Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
+final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
+GoogleAuthProvider provider = new GoogleAuthProvider(client, "google-server-client-id");
+```
+
+Override your activity's `onActivityResult` method and redirect the received parameters to the provider instance's `authorize` method.
+
+```java
+@Override
+protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (provider.authorize(requestCode, resultCode, data)) {
+        return;
+    }
+    super.onActivityResult(requestCode, resultCode, data);
+}
+```
+
+Call `start` with a custom authentication request code to begin the authentication flow. The permissions request code is ignored as this provider doesn't need any custom android permissions.
+
+```java
+provider.start(this, callback, RC_PERMISSIONS, RC_AUTHENTICATION);
+```
+
+That's it! You'll receive the result in the `AuthCallback` you passed.
+
+## Using a custom connection name
+To use a custom social connection name to authorize against Auth0, call `setConnection` with your new connection name.
+
+```java
+provider.setConnection("my-connection")
+```
+
+## Log out / Clear account.
+To log out the user so that the next time he's prompted to select an account call `clearSession`. After you do this the provider state will be invalid and you will need to call `start` again before trying to `authorize` a result.
+
+```java
+provider.clearSession();
+```
+ 
+> Calling `stop` has the same effect.
+
 
 ## Issue Reporting
 
