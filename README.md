@@ -33,7 +33,7 @@ The Lock-GooglePlus is available through [Maven Central](http://search.maven.org
 compile 'com.auth0.android:lock-googleplus:2.5.+'
 ```
 
-Then in your project's `AndroidManifest.xml` add the following entry:
+Then in your project's `AndroidManifest.xml` add the following entry inside the application tag.
 
 ```xml
 <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
@@ -129,13 +129,29 @@ To use a custom social connection name to authorize against Auth0, call `setConn
 provider.setConnection("my-connection")
 ```
 
+## Requesting a custom Scope
+By default, the scope `Scopes.PLUS_LOGIN` is requested. You can customize the Scopes by calling `setScopes` with the list of Scopes. Each Google API (Auth, Drive, Plus..) specify it's own list of Scopes.
+
+```java
+provider.setScopes(Arrays.asList(new Scope(Scopes.PLUS_ME), new Scope(Scopes.PLUS_LOGIN)));
+```
+
+## Using custom Android Runtime Permissions
+This provider doesn't require any special Android Manifest Permission to authenticate the user. But if your use case requires them, you can let the AuthProvider handle them for you. Use the `setRequiredPermissions` method.
+ 
+```java
+provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
+```
+
+If you're not using Lock, then you'll have to handle the permission request result yourself. To do so, make your activity implement `ActivityCompat.OnRequestPermissionsResultCallback` and override the `onRequestPermissionsResult` method, calling `provider.onRequestPermissionsResult` with the activity context and the received parameters.
+
 ## Log out / Clear account.
 To log out the user so that the next time he's prompted to select an account call `clearSession`. After you do this the provider state will be invalid and you will need to call `start` again before trying to `authorize` a result.
 
 ```java
 provider.clearSession();
 ```
- 
+
 > Calling `stop` has the same effect.
 
 
