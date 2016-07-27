@@ -88,6 +88,8 @@ Lock lock = builder.withProviderResolver(authHandler);
 
 That's it! When **Lock** needs to authenticate using that connection name, it will ask the `AuthProviderResolver` for a valid `AuthProvider`.
 
+> We provide this demo in the `FilesActivity` class. We also use the Google Drive SDK to get the user's Drive Files and show them on a list. Because of the Drive Scope, the SDK requires the user to grant the `GET_ACCOUNTS` android permission first. Keep in mind that _this only affects this demo_ and that if you only need to authenticate the user and get his public profile, the `GoogleAuthProvider` won't ask for additional permissions.
+
 ### Without Lock
 
 Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `server client id` obtained in the Project Credential's page.
@@ -117,6 +119,8 @@ provider.start(this, callback, RC_PERMISSIONS, RC_AUTHENTICATION);
 ```
 
 That's it! You'll receive the result in the `AuthCallback` you passed.
+
+> We provide this demo in the `SimpleActivity` class.
 
 ## Using a custom connection name
 To use a custom social connection name to authorize against Auth0, call `setConnection` with your new connection name.
