@@ -38,6 +38,7 @@ public class GoogleAuthProvider extends AuthProvider {
     private Scope[] scopes;
     private String connectionName;
     private GoogleAPIHelper apiHelper;
+    private String[] androidPermissions;
 
     /**
      * @param client         an Auth0 AuthenticationAPIClient instance
@@ -48,6 +49,17 @@ public class GoogleAuthProvider extends AuthProvider {
         this.serverClientId = serverClientId;
         this.scopes = new Scope[]{new Scope(Scopes.PLUS_LOGIN)};
         this.connectionName = "google-oauth2";
+        this.androidPermissions = new String[0];
+    }
+
+    /**
+     * Sets the required Android Manifest Permissions for this provider. By default, no permissions are needed for the Auth API to work.
+     * Use it only if the scope you need requires that the user approves a certain Android Permission first.
+     *
+     * @param androidPermissions the permissions to request to the user before asking for the account.
+     */
+    public void setRequiredPermissions(@NonNull String[] androidPermissions) {
+        this.androidPermissions = androidPermissions;
     }
 
     /**
@@ -95,7 +107,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     @Override
     public String[] getRequiredAndroidPermissions() {
-        return new String[0];
+        return androidPermissions;
     }
 
     @Override

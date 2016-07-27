@@ -17,6 +17,7 @@ import com.google.android.gms.common.api.Scope;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsArrayContaining;
+import org.hamcrest.collection.IsArrayContainingInAnyOrder;
 import org.hamcrest.collection.IsArrayWithSize;
 import org.hamcrest.core.Is;
 import org.junit.Before;
@@ -164,6 +165,16 @@ public class GoogleAuthProviderTest {
     public void shouldNotRequireAndroidPermissions() {
         assertThat(provider.getRequiredAndroidPermissions(), is(notNullValue()));
         assertThat(provider.getRequiredAndroidPermissions(), is(IsArrayWithSize.<String>emptyArray()));
+    }
+
+    @Test
+    public void shouldSetRequireAndroidPermissions() {
+        String[] myPermissions = new String[]{"Permission.A", "Permission.B"};
+        provider.setRequiredPermissions(myPermissions);
+
+        assertThat(provider.getRequiredAndroidPermissions(), is(notNullValue()));
+        assertThat(provider.getRequiredAndroidPermissions(), is(IsArrayWithSize.arrayWithSize(2)));
+        assertThat(provider.getRequiredAndroidPermissions(), is(IsArrayContainingInAnyOrder.arrayContainingInAnyOrder("Permission.A", "Permission.B")));
     }
 
     @Test
