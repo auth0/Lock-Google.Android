@@ -41,7 +41,11 @@ import static org.hamcrest.collection.IsArrayContainingInAnyOrder.arrayContainin
 import static org.hamcrest.collection.IsArrayWithSize.arrayWithSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GoogleAuthProviderTest {
 
@@ -58,7 +62,7 @@ public class GoogleAuthProviderTest {
     @Mock
     private Activity activity;
     @Mock
-    private GoogleAPI apiHelper;
+    private GoogleAPI google;
     @Mock
     private AuthenticationRequest authenticationRequest;
     @Mock
@@ -69,7 +73,7 @@ public class GoogleAuthProviderTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        provider = new GoogleAuthProviderMock(SERVER_CLIENT_ID, client, apiHelper);
+        provider = new GoogleAuthProviderMock(SERVER_CLIENT_ID, client, google);
     }
 
     @Test
@@ -111,14 +115,14 @@ public class GoogleAuthProviderTest {
     public void shouldCheckGooglePlayServicesAvailability() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
 
-        verify(apiHelper).isGooglePlayServicesAvailable();
+        verify(google).isGooglePlayServicesAvailable();
     }
 
     @Test
     public void shouldFailWithDialogIfGooglePlayServicesIsNotAvailable() throws Exception {
-        when(apiHelper.isGooglePlayServicesAvailable()).thenReturn(ConnectionResult.SERVICE_MISSING);
+        when(google.isGooglePlayServicesAvailable()).thenReturn(ConnectionResult.SERVICE_MISSING);
         Dialog dialog = mock(Dialog.class);
-        when(apiHelper.getErrorDialog(ConnectionResult.SERVICE_MISSING, GoogleAuthProvider.REQUEST_RESOLVE_ERROR)).thenReturn(dialog);
+        when(google.getErrorDialog(ConnectionResult.SERVICE_MISSING, GoogleAuthProvider.REQUEST_RESOLVE_ERROR)).thenReturn(dialog);
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
 
         verify(callback).onFailure(dialog);
@@ -126,48 +130,60 @@ public class GoogleAuthProviderTest {
 
     @Test
     public void shouldConnectTheGoogleAPIClientIfGooglePlayServicesIsAvailable() throws Exception {
-        when(apiHelper.isGooglePlayServicesAvailable()).thenReturn(ConnectionResult.SUCCESS);
+        when(google.isGooglePlayServicesAvailable()).thenReturn(ConnectionResult.SUCCESS);
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
 
-        verify(apiHelper).connectAndRequestGoogleAccount(AUTH_REQ_CODE, GoogleAuthProvider.REQUEST_RESOLVE_ERROR);
+        verify(google).connectAndRequestGoogleAccount(AUTH_REQ_CODE, GoogleAuthProvider.REQUEST_RESOLVE_ERROR);
     }
 
     @Test
-    public void shouldParseAuthorization() {
+    public void shouldParseAuthorization() throws Exception {
         Intent intent = mock(Intent.class);
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.authorize(AUTH_REQ_CODE, Activity.RESULT_OK, intent);
         provider.authorize(AUTH_REQ_CODE, Activity.RESULT_CANCELED, intent);
 
-        verify(apiHelper).parseSignInResult(AUTH_REQ_CODE, Activity.RESULT_OK, intent);
-        verify(apiHelper).parseSignInResult(AUTH_REQ_CODE, Activity.RESULT_CANCELED, intent);
+        verify(google).parseSignInResult(AUTH_REQ_CODE, Activity.RESULT_OK, intent);
+        verify(google).parseSignInResult(AUTH_REQ_CODE, Activity.RESULT_CANCELED, intent);
     }
 
     @Test
-    public void shouldReturnDelegatedParseResult() {
+    public void shouldReturnDelegatedParseResult() throws Exception {
         Intent intent = mock(Intent.class);
-
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
-        when(apiHelper.parseSignInResult(AUTH_REQ_CODE, Activity.RESULT_OK, intent)).thenReturn(true);
-        when(apiHelper.parseSignInResult(999, Activity.RESULT_OK, intent)).thenReturn(false);
+        when(google.parseSignInResult(AUTH_REQ_CODE, Activity.RESULT_OK, intent)).thenReturn(true);
+        when(google.parseSignInResult(999, Activity.RESULT_OK, intent)).thenReturn(false);
 
         assertThat(provider.authorize(AUTH_REQ_CODE, Activity.RESULT_OK, intent), is(true));
         assertThat(provider.authorize(999, Activity.RESULT_OK, intent), is(false));
     }
 
     @Test
-    public void shouldDoNothingWhenCalledFromNewIntent() {
+    public void shouldDoNothingWhenCalledFromNewIntent() throws Exception {
         assertThat(provider.authorize(null), is(false));
     }
 
     @Test
-    public void shouldNotRequireAndroidPermissions() {
+    public void shouldNotRequireAndroidPermissions() throws Exception {
         assertThat(provider.getRequiredAndroidPermissions(), is(notNullValue()));
         assertThat(provider.getRequiredAndroidPermissions(), is(IsArrayWithSize.<String>emptyArray()));
     }
 
     @Test
-    public void shouldSetRequireAndroidPermissions() {
+    public void shouldNotLogoutBeforeLoginByDefault() throws Exception {
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        assertThat(provider.willLogoutBeforeLogin(), is(false));
+    }
+
+    @Test
+    public void shouldLogoutBeforeLoginIfRequested() throws Exception {
+        provider.forceRequestAccount(true);
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        assertThat(provider.willLogoutBeforeLogin(), is(true));
+    }
+
+    @Test
+    public void shouldSetRequireAndroidPermissions() throws Exception {
         String[] myPermissions = new String[]{"Permission.A", "Permission.B"};
         provider.setRequiredPermissions(myPermissions);
 
@@ -177,7 +193,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldNotCallAuth0OAuthEndpointWhenSomeScopesWereRejected() {
+    public void shouldNotCallAuth0OAuthEndpointWhenSomeScopesWereRejected() throws Exception {
         provider.setScopes(new Scope("some-scope"));
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(authenticationRequest);
@@ -187,9 +203,10 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithTextWhenSomeScopesWereRejected() {
+    public void shouldFailWithTextWhenSomeScopesWereRejected() throws Exception {
         provider.setScopes(new Scope("some-scope"));
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+
         when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(authenticationRequest);
         final Set<Scope> scopes = Collections.emptySet();
         provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, scopes));
@@ -198,7 +215,7 @@ public class GoogleAuthProviderTest {
 
 
     @Test
-    public void shouldCallAuth0OAuthEndpointWhenGoogleTokenIsReceived() {
+    public void shouldCallAuth0OAuthEndpointWhenGoogleTokenIsReceived() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(authenticationRequest);
         final List<Scope> list = Arrays.asList(provider.getScopes());
@@ -208,8 +225,8 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldCallAuth0OAuthEndpointWithCustomConnectionNameWhenGoogleTokenIsReceived() {
-        provider = new GoogleAuthProviderMock("my-custom-connection", SERVER_CLIENT_ID, client, apiHelper);
+    public void shouldCallAuth0OAuthEndpointWithCustomConnectionNameWhenGoogleTokenIsReceived() throws Exception {
+        provider = new GoogleAuthProviderMock("my-custom-connection", SERVER_CLIENT_ID, client, google);
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         when(client.loginWithOAuthAccessToken(TOKEN, "my-custom-connection")).thenReturn(authenticationRequest);
         provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<>(Arrays.asList(provider.getScopes()))));
@@ -218,7 +235,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithDialogWhenErrorOccurred() {
+    public void shouldFailWithDialogWhenErrorOccurred() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         Dialog dialog = mock(Dialog.class);
         provider.googleCallback.onError(dialog);
@@ -227,7 +244,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithTextWhenFacebookRequestIsCancelled() {
+    public void shouldFailWithTextWhenFacebookRequestIsCancelled() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.googleCallback.onCancel();
 
@@ -239,7 +256,6 @@ public class GoogleAuthProviderTest {
         shouldFailRequest(authenticationRequest);
         when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME))
                 .thenReturn(authenticationRequest);
-
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<>(Arrays.asList(provider.getScopes()))));
 
@@ -247,11 +263,10 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldSucceedIfCredentialsRequestSucceeded() {
+    public void shouldSucceedIfCredentialsRequestSucceeded() throws Exception {
         shouldYieldCredentialsForRequest(authenticationRequest, credentials);
         when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME))
                 .thenReturn(authenticationRequest);
-
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<>(Arrays.asList(provider.getScopes()))));
 
@@ -259,17 +274,17 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldLogoutOnClearSession() {
+    public void shouldLogoutOnClearSession() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.clearSession();
-        verify(apiHelper).logoutAndClearState();
+        verify(google).logoutAndClearState();
     }
 
     @Test
-    public void shouldLogoutOnStop() {
+    public void shouldLogoutOnStop() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.stop();
-        verify(apiHelper).logoutAndClearState();
+        verify(google).logoutAndClearState();
     }
 
     private GoogleSignInAccount createGoogleSignInAccountFromToken(@NonNull String token, @NonNull Set<Scope> grantedScopes) {

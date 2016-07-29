@@ -40,6 +40,7 @@ public class GoogleAuthProvider extends AuthProvider {
     private Scope[] scopes;
     private GoogleAPI google;
     private String[] androidPermissions;
+    private boolean forceRequestAccount;
 
     /**
      * Creates Google Auth provider for default Google connection 'google-oauth2'.
@@ -77,6 +78,16 @@ public class GoogleAuthProvider extends AuthProvider {
     }
 
     /**
+     * Whether it should clear the session and logout any existing user before trying to authenticate or not.
+     * This can be useful when using Lock, so that the user always need to select which account/credentials to use.
+     *
+     * @param force the new force flag value.
+     */
+    public void forceRequestAccount(boolean force) {
+        this.forceRequestAccount = force;
+    }
+
+    /**
      * Change the scopes to request on the user login. Use any of the scopes defined in the com.google.android.gms.common.Scopes class. Must be called before start().
      * The scope Scopes.PLUG_LOGIN is requested by default.
      *
@@ -88,7 +99,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
-        google = createAPIHelper(activity);
+        google = createGoogleAPI(activity, forceRequestAccount);
         final int availabilityStatus = google.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
             google.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
@@ -154,8 +165,10 @@ public class GoogleAuthProvider extends AuthProvider {
         return connectionName;
     }
 
-    GoogleAPI createAPIHelper(Activity activity) {
-        return new GoogleAPI(activity, serverClientId, scopes, createTokenListener());
+    GoogleAPI createGoogleAPI(Activity activity, boolean forceRequestAccount) {
+        final GoogleAPI googleAPI = new GoogleAPI(activity, serverClientId, scopes, createTokenListener());
+        googleAPI.forceRequestAccount(forceRequestAccount);
+        return googleAPI;
     }
 
     GoogleCallback createTokenListener() {

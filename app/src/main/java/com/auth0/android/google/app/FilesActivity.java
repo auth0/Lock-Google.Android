@@ -131,9 +131,10 @@ public class FilesActivity extends AppCompatActivity {
         public AuthProvider onAuthProviderRequest(Context context, @NonNull AuthCallback callback, @NonNull String connectionName) {
             if (GOOGLE_CONNECTION.equals(connectionName)) {
                 AuthenticationAPIClient client = new AuthenticationAPIClient(getAccount());
-                GoogleAuthProvider googleProvider = new GoogleAuthProvider(client, getString(R.string.google_server_client_id));
+                GoogleAuthProvider googleProvider = new GoogleAuthProvider(getString(R.string.google_server_client_id), client);
                 googleProvider.setScopes(new Scope(DriveScopes.DRIVE_METADATA_READONLY));
                 googleProvider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
+                googleProvider.forceRequestAccount(true);
                 return googleProvider;
             }
             return null;
