@@ -20,10 +20,6 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Helper class to wrap all the GoogleApiClient and GoogleApiAvailability calls.
  */
@@ -37,17 +33,27 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
     private boolean resolvingError;
     private int signInRequestCode;
     private int errorResolutionRequestCode;
+    private boolean forceRequestAccount;
 
     /**
      * @param activity       a valid activity context to use
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      * @param scopes         the list of scopes to request to the Google Auth API.
-     * @param googleCallback  to notify token reception and occurred errors.
+     * @param googleCallback to notify token reception and occurred errors.
      */
     public GoogleAPIHelper(@NonNull Activity activity, @NonNull String serverClientId, @NonNull Scope[] scopes, @NonNull GoogleCallback googleCallback) {
         this.activity = activity;
         this.googleCallback = googleCallback;
         this.client = createGoogleAPIClient(serverClientId, scopes);
+    }
+
+    /**
+     * Whether it should clear the session and logout any existing user before trying to authenticate or not.
+     *
+     * @param forceRequestAccount the new force flag value.
+     */
+    public void forceRequestAccount(boolean forceRequestAccount) {
+        this.forceRequestAccount = forceRequestAccount;
     }
 
     @Override
@@ -155,10 +161,18 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
     }
 
     /**
-     * Logs out the user and clears the account.
-     * After this method is called the provider should not be used.
+     * Clears this helper state. After this method is called the provider should not be used.
      */
     public void logoutAndClearState() {
+        if (client != null && client.isConnected()) {
+            logout();
+            client.disconnect();
+        }
+        activity = null;
+        client = null;
+    }
+
+    void logout() {
         try {
             Auth.GoogleSignInApi.signOut(client).setResultCallback(new ResultCallback<Status>() {
                 @Override
@@ -169,13 +183,7 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
                 }
             });
         } catch (IllegalStateException e) {
-            Log.e(TAG, "Failed to clear Google Plus Session", e);
-        } finally {
-            if (client != null && client.isConnected()) {
-                client.disconnect();
-            }
-            activity = null;
-            client = null;
+            Log.e(TAG, "Failed to clear the Google Plus Session", e);
         }
     }
 
@@ -196,6 +204,9 @@ class GoogleAPIHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiC
 
 
     private void requestGoogleAccount(int signInRequestCode) {
+        if (forceRequestAccount) {
+            logout();
+        }
         final Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(client);
         activity.startActivityForResult(signInIntent, signInRequestCode);
     }

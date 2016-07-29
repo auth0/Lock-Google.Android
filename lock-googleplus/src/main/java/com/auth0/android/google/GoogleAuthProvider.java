@@ -39,6 +39,7 @@ public class GoogleAuthProvider extends AuthProvider {
     private String connectionName;
     private GoogleAPIHelper apiHelper;
     private String[] androidPermissions;
+    private boolean forceRequestAccount;
 
     /**
      * @param client         an Auth0 AuthenticationAPIClient instance
@@ -63,6 +64,16 @@ public class GoogleAuthProvider extends AuthProvider {
     }
 
     /**
+     * Whether it should clear the session and logout any existing user before trying to authenticate or not.
+     * This can be useful when using Lock, so that the user always need to select which account/credentials to use.
+     *
+     * @param force the new force flag value.
+     */
+    public void forceRequestAccount(boolean force) {
+        this.forceRequestAccount = force;
+    }
+
+    /**
      * Change the scopes to request on the user login. Use any of the scopes defined in the com.google.android.gms.common.Scopes class. Must be called before start().
      * The scope Scopes.PLUG_LOGIN is requested by default.
      *
@@ -83,7 +94,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
-        apiHelper = createAPIHelper(activity);
+        apiHelper = createAPIHelper(activity, forceRequestAccount);
         final int availabilityStatus = apiHelper.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
             apiHelper.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
@@ -148,8 +159,10 @@ public class GoogleAuthProvider extends AuthProvider {
         return connectionName;
     }
 
-    GoogleAPIHelper createAPIHelper(Activity activity) {
-        return new GoogleAPIHelper(activity, serverClientId, scopes, createTokenListener());
+    GoogleAPIHelper createAPIHelper(Activity activity, boolean forceRequestAccount) {
+        final GoogleAPIHelper helper = new GoogleAPIHelper(activity, serverClientId, scopes, createTokenListener());
+        helper.forceRequestAccount(forceRequestAccount);
+        return helper;
     }
 
     GoogleCallback createTokenListener() {

@@ -8,6 +8,7 @@ import com.auth0.android.authentication.AuthenticationAPIClient;
 public class GoogleAuthProviderMock extends GoogleAuthProvider {
     GoogleAPIHelper apiHelper;
     GoogleCallback googleCallback;
+    boolean logoutBeforeLogin;
 
     public GoogleAuthProviderMock(@NonNull AuthenticationAPIClient client, @NonNull String serverClientId, GoogleAPIHelper apiHelper) {
         super(client, serverClientId);
@@ -15,8 +16,9 @@ public class GoogleAuthProviderMock extends GoogleAuthProvider {
     }
 
     @Override
-    GoogleAPIHelper createAPIHelper(Activity activity) {
+    GoogleAPIHelper createAPIHelper(Activity activity, boolean forceRequestAccount) {
         createTokenListener();
+        this.logoutBeforeLogin =forceRequestAccount;
         return apiHelper;
     }
 
@@ -24,5 +26,9 @@ public class GoogleAuthProviderMock extends GoogleAuthProvider {
     GoogleCallback createTokenListener() {
         googleCallback = super.createTokenListener();
         return googleCallback;
+    }
+
+    boolean willLogoutBeforeLogin() {
+        return logoutBeforeLogin;
     }
 }

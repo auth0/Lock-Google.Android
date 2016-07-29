@@ -134,7 +134,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldParseAuthorization() {
+    public void shouldParseAuthorization() throws Exception {
         Intent intent = Mockito.mock(Intent.class);
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.authorize(AUTH_REQ_CODE, Activity.RESULT_OK, intent);
@@ -145,7 +145,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldReturnDelegatedParseResult() {
+    public void shouldReturnDelegatedParseResult() throws Exception {
         Intent intent = Mockito.mock(Intent.class);
 
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
@@ -157,18 +157,31 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldDoNothingWhenCalledFromNewIntent() {
+    public void shouldDoNothingWhenCalledFromNewIntent() throws Exception {
         assertThat(provider.authorize(null), is(false));
     }
 
     @Test
-    public void shouldNotRequireAndroidPermissions() {
+    public void shouldNotRequireAndroidPermissions() throws Exception {
         assertThat(provider.getRequiredAndroidPermissions(), is(notNullValue()));
         assertThat(provider.getRequiredAndroidPermissions(), is(IsArrayWithSize.<String>emptyArray()));
     }
 
     @Test
-    public void shouldSetRequireAndroidPermissions() {
+    public void shouldNotLogoutBeforeLoginByDefault() throws Exception {
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        assertThat(provider.willLogoutBeforeLogin(), is(false));
+    }
+
+    @Test
+    public void shouldLogoutBeforeLoginIfRequested() throws Exception {
+        provider.forceRequestAccount(true);
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        assertThat(provider.willLogoutBeforeLogin(), is(true));
+    }
+
+    @Test
+    public void shouldSetRequireAndroidPermissions() throws Exception {
         String[] myPermissions = new String[]{"Permission.A", "Permission.B"};
         provider.setRequiredPermissions(myPermissions);
 
@@ -178,7 +191,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldNotCallAuth0OAuthEndpointWhenSomeScopesWereRejected() {
+    public void shouldNotCallAuth0OAuthEndpointWhenSomeScopesWereRejected() throws Exception {
         provider.setScopes(new Scope("some-scope"));
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
@@ -189,7 +202,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithTextWhenSomeScopesWereRejected() {
+    public void shouldFailWithTextWhenSomeScopesWereRejected() throws Exception {
         provider.setScopes(new Scope("some-scope"));
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
@@ -201,13 +214,13 @@ public class GoogleAuthProviderTest {
         ArgumentCaptor<Integer> messageResCaptor = ArgumentCaptor.forClass(Integer.class);
         Mockito.verify(callback).onFailure(titleResCaptor.capture(), messageResCaptor.capture(), throwableCaptor.capture());
         MatcherAssert.assertThat(throwableCaptor.getValue(), Is.is(nullValue()));
-        MatcherAssert.assertThat(titleResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_failed_title));
+        MatcherAssert.assertThat(titleResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_failed_missing_permissions_title));
         MatcherAssert.assertThat(messageResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_failed_missing_permissions_message));
     }
 
 
     @Test
-    public void shouldCallAuth0OAuthEndpointWhenGoogleTokenIsReceived() {
+    public void shouldCallAuth0OAuthEndpointWhenGoogleTokenIsReceived() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
         Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(request);
@@ -217,7 +230,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldCallAuth0OAuthEndpointWithCustomConnectionNameWhenGoogleTokenIsReceived() {
+    public void shouldCallAuth0OAuthEndpointWithCustomConnectionNameWhenGoogleTokenIsReceived() throws Exception {
         provider.setConnection("my-custom-connection");
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         final AuthenticationRequest request = Mockito.mock(AuthenticationRequest.class);
@@ -228,7 +241,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithDialogWhenErrorOccurred() {
+    public void shouldFailWithDialogWhenErrorOccurred() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         Dialog dialog = Mockito.mock(Dialog.class);
         provider.googleCallback.onError(dialog);
@@ -237,7 +250,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithTextWhenFacebookRequestIsCancelled() {
+    public void shouldFailWithTextWhenFacebookRequestIsCancelled() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.googleCallback.onCancel();
 
@@ -246,12 +259,12 @@ public class GoogleAuthProviderTest {
         ArgumentCaptor<Integer> messageResCaptor = ArgumentCaptor.forClass(Integer.class);
         Mockito.verify(callback).onFailure(titleResCaptor.capture(), messageResCaptor.capture(), throwableCaptor.capture());
         MatcherAssert.assertThat(throwableCaptor.getValue(), Is.is(nullValue()));
-        MatcherAssert.assertThat(titleResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_failed_title));
+        MatcherAssert.assertThat(titleResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_cancelled_title));
         MatcherAssert.assertThat(messageResCaptor.getValue(), Is.is(R.string.com_auth0_google_authentication_cancelled_error_message));
     }
 
     @Test
-    public void shouldFailWithTextWhenCredentialsRequestFailed() {
+    public void shouldFailWithTextWhenCredentialsRequestFailed() throws Exception {
         final AuthenticationRequest authRequest = new AuthenticationRequestMock(false);
         Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME))
                 .thenReturn(authRequest);
@@ -269,7 +282,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldSucceedIfCredentialsRequestSucceeded() {
+    public void shouldSucceedIfCredentialsRequestSucceeded() throws Exception {
         final AuthenticationRequest authRequest = new AuthenticationRequestMock(true);
         Mockito.when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME))
                 .thenReturn(authRequest);
@@ -284,14 +297,14 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldLogoutOnClearSession() {
+    public void shouldLogoutOnClearSession() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.clearSession();
         Mockito.verify(apiHelper).logoutAndClearState();
     }
 
     @Test
-    public void shouldLogoutOnStop() {
+    public void shouldLogoutOnStop() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.stop();
         Mockito.verify(apiHelper).logoutAndClearState();
