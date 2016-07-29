@@ -164,14 +164,14 @@ public class GoogleAuthProvider extends AuthProvider {
                     final Set<Scope> notGrantedScopes = new HashSet<>(requestedScopes);
                     notGrantedScopes.removeAll(grantedScopes);
                     Log.w(TAG, "Some scopes were not granted: " + notGrantedScopes.toString());
-                    callback.onFailure(R.string.com_auth0_google_authentication_failed_title, R.string.com_auth0_google_authentication_failed_missing_permissions_message, null);
+                    callback.onFailure(R.string.com_auth0_google_authentication_failed_missing_permissions_title, R.string.com_auth0_google_authentication_failed_missing_permissions_message, null);
                 }
             }
 
             @Override
             public void onCancel() {
                 Log.w(TAG, "User cancelled the log in dialog");
-                callback.onFailure(R.string.com_auth0_google_authentication_failed_title, R.string.com_auth0_google_authentication_cancelled_error_message, null);
+                callback.onFailure(R.string.com_auth0_google_authentication_cancelled_title, R.string.com_auth0_google_authentication_cancelled_error_message, null);
             }
 
             @Override
