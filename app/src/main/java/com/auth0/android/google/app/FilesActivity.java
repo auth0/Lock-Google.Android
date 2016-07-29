@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.auth0.android.Auth0;
 import com.auth0.android.authentication.AuthenticationAPIClient;
@@ -117,10 +118,12 @@ public class FilesActivity extends AppCompatActivity {
 
         @Override
         public void onCanceled() {
+            Toast.makeText(FilesActivity.this, "Authentication cancelled", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onError(LockException error) {
+            Toast.makeText(FilesActivity.this, "Error occurred. Please retry.", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "Error occurred: " + error.getMessage());
         }
     };
@@ -182,9 +185,14 @@ public class FilesActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(List<String> names) {
+            progressBar.setVisibility(View.GONE);
+            if (names.isEmpty()) {
+                Toast.makeText(FilesActivity.this, "You have no files on Google Drive!", Toast.LENGTH_LONG).show();
+                return;
+            }
+            files.clear();
             files.addAll(names);
             adapter.notifyDataSetChanged();
-            progressBar.setVisibility(View.GONE);
         }
     }
 }
