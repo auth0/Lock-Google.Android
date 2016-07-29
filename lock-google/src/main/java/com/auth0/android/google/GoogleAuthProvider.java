@@ -43,6 +43,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     /**
      * Creates Google Auth provider for default Google connection 'google-oauth2'.
+     *
      * @param client         an Auth0 AuthenticationAPIClient instance
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      */
@@ -52,6 +53,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     /**
      * Creates Google Auth provider for a specific Google connection.
+     *
      * @param connectionName of Auth0's connection used to Authenticate after user is authenticated with Google. Must be a Google connection
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      * @param client         an Auth0 AuthenticationAPIClient instance
