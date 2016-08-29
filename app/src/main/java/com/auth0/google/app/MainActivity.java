@@ -131,8 +131,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         authRequestInProgress = true;
-                        provider.start(MainActivity.this, Strategies.GooglePlus.getName());
                         progressDialog = ProgressDialog.show(MainActivity.this, getString(R.string.progress_title), getString(R.string.progress_message));
+                        provider.start(MainActivity.this, Strategies.GooglePlus.getName());
                     }
                 }
         );
