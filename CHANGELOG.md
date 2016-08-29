@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.5.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.5.0) (2016-08-29)
+[Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/2.4.0...2.5.0)
+
+**Merged pull requests:**
+
+- Fix crash when showing permission denied dialog [\#24](https://github.com/auth0/Lock-GooglePlus.Android/pull/24) ([hzalaz](https://github.com/hzalaz))
+
 ## [2.4.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.4.0) (2016-03-18)
 [Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/2.3.0...2.4.0)
 
