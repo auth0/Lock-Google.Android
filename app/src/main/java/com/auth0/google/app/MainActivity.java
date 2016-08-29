@@ -27,6 +27,7 @@ package com.auth0.google.app;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         Auth0 auth0 = new Auth0(getString(R.string.auth0_client_id), getString(R.string.auth0_domain_name));
         final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
 
-        provider = new GoogleIdentityProvider(MainActivity.this);
+        provider = new GoogleIdentityProvider(getApplicationContext());
         provider.setCallback(new IdentityProviderCallback() {
             @Override
             public void onFailure(Dialog dialog) {
@@ -84,6 +85,13 @@ public class MainActivity extends AppCompatActivity {
                 AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
                         .setTitle(titleResource)
                         .setMessage(messageResource)
+                        .setCancelable(true)
+                        .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        })
                         .create();
                 dialog.show();
             }
