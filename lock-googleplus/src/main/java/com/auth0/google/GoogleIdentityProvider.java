@@ -33,6 +33,7 @@ import android.support.v7.app.AlertDialog;
 
 import com.auth0.googleplus.GooglePlusIdentityProvider;
 import com.auth0.identity.AuthorizedIdentityProvider;
+import com.auth0.identity.IdentityProviderCallback;
 
 import java.util.List;
 
@@ -84,17 +85,14 @@ import java.util.List;
 @TargetApi(23)
 public class GoogleIdentityProvider extends AuthorizedIdentityProvider {
 
-    private final Context context;
-
     @SuppressWarnings("deprecated")
     public GoogleIdentityProvider(Context context) {
         super(new GooglePlusIdentityProvider(context));
-        this.context = context;
     }
 
     @Override
-    public void onPermissionsRequireExplanation(List<String> permissions) {
-        new AlertDialog.Builder(context)
+    public void onPermissionsRequireExplanation(Activity activity, List<String> permissions, final IdentityProviderCallback callback) {
+        new AlertDialog.Builder(activity)
                 .setTitle(R.string.com_auth0_google_permission_failed_title)
                 .setMessage(R.string.com_auth0_google_permission_failed_message)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -103,7 +101,9 @@ public class GoogleIdentityProvider extends AuthorizedIdentityProvider {
                     }
                 })
                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {}
+                    public void onClick(DialogInterface dialog, int which) {
+                        callback.onFailure(R.string.com_auth0_google_permission_declined_title, R.string.com_auth0_google_permission_declined_message, null);
+                    }
                 })
                 .setIcon(android.R.drawable.ic_dialog_email)
                 .show();
