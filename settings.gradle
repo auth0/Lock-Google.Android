@@ -1,2 +1,1 @@
 include ':lock-googleplus', ':app'
-//rootProject.name = POM_ARTIFACT_ID
