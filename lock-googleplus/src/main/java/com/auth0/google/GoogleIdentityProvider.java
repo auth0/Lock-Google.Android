@@ -29,6 +29,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
 import com.auth0.googleplus.GooglePlusIdentityProvider;
@@ -86,11 +87,12 @@ import java.util.List;
 public class GoogleIdentityProvider extends AuthorizedIdentityProvider {
 
     @Deprecated
-    public GoogleIdentityProvider(Context context) {
+    public GoogleIdentityProvider(@NonNull Context context) {
+        //noinspection ConstantConditions
         this(context, null);
     }
 
-    public GoogleIdentityProvider(Context context, String serverClientId) {
+    public GoogleIdentityProvider(@NonNull Context context, @NonNull String serverClientId) {
         super(new GooglePlusIdentityProvider(context, serverClientId));
     }
 

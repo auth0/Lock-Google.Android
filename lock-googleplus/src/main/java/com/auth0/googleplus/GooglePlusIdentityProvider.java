@@ -66,11 +66,12 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     private IdentityProviderCallback callback;
 
     @Deprecated
-    public GooglePlusIdentityProvider(Context context) {
+    public GooglePlusIdentityProvider(@NonNull Context context) {
+        //noinspection ConstantConditions
         this(context, null);
     }
 
-    public GooglePlusIdentityProvider(Context context, String serverClientId) {
+    public GooglePlusIdentityProvider(@NonNull Context context, @NonNull String serverClientId) {
         this.apiClient = createAPIClient(context, serverClientId);
     }
 

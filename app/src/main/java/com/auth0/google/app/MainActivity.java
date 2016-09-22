@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         Auth0 auth0 = new Auth0(getString(R.string.auth0_client_id), getString(R.string.auth0_domain_name));
         final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
 
-        provider = new GoogleIdentityProvider(getApplicationContext());
+        provider = new GoogleIdentityProvider(getApplicationContext(), "SERVER_CLIENT_ID");
         provider.setCallback(new IdentityProviderCallback() {
             @Override
             public void onFailure(Dialog dialog) {

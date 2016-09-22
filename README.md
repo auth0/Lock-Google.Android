@@ -11,19 +11,19 @@ Lock-GooglePlus helps you integrate native Login with [Google+ Android SDK](http
 
 ## Requierements
 
-Android 4.0 or later & Google Play Services 8.+
+Android 4.0 or later & Google Play Services 9.+
 
 ## Before you start using Lock-Google
 
 In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your clientId.
-We recommend follwing Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then with your OAuth Mobile clientID from Google, the only step missing is to configure your Google Connection in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social) with your recenlty created Google clientId.
+We recommend following Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then with your OAuth Mobile clientID from Google, the only step missing is to configure your Google Connection in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social) with your recently created Google clientId.
 
 
 > For more information please check Google's [documentation](https://developers.google.com/identity/sign-in/android/)
 
 ### Auth0 Connection with multiple Google clientIDs (Web & Mobile)
 
-If you also have a Web Application, and a Google clientID & secret for it configured in Auth0, you need to whitelist the Google clientID of your mobile application in your Auth0 connection. With your Mobile clientID from Google, go to [Social Connections](https://manage.auth0.com/#/connections/social), select **Google** and add the clientID to the field named `Allowed Mobile Client IDs`
+If you also have a Web Application, and a Google clientID & secret for it configured in Auth0, you need to whitelist the Google clientID of your mobile application in your Auth0 connection. You will also need to create a new Credential for an **OAuth 2.0 Web Client** and save the `server_client_id` as it will be required in the next steps when you instantiate the `GoogleIdentityProvider`. With your Mobile clientID from Google, go to [Social Connections](https://manage.auth0.com/#/connections/social), select **Google** and add the clientID to the field named `Allowed Mobile Client IDs`. Next, add the Web clientID to the field named `Client ID`.
 
 ## Install
 
@@ -69,10 +69,10 @@ where `provider` is your instance of `GoogleIdentityProvider`
 
 ## Usage
 
-Just create a new instance of `GoogleIdentityProvider`
+Just create a new instance of `GoogleIdentityProvider` passing the Context and the `server_client_id` created in one of the previous steps.
 
 ```java
-GoogleIdentityProvider google = new GoogleIdentityProvider();
+GoogleIdentityProvider google = new GoogleIdentityProvider(context, "server_client_id");
 ```
 
 and register it with your instance of `Lock`
