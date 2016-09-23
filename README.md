@@ -56,34 +56,26 @@ Google Sign-In does not require additional android permissions.
 
 ### With Lock
 
-Create a new class and make it implement `AuthProviderResolver`. On the `onAuthProviderRequest` method compare the `connectionName` value against the connection you would like this provider to handle, and if it's a match return a new `GoogleAuthProvider` instance, with an `AuthenticationAPIClient` and the `server client id` obtained in the Project Credential's page.
-
+This library includes an implementation of the `AuthHandler` interface for you to use it directly with **Lock**. Create a new instance of the `GoogleAuthHandler` class passing a valid `GoogleAuthProvider`. Don't forget to customize the scopes if you need to. 
+ 
 ```java
-public class AuthHandler implements AuthProviderResolver {
+Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
 
-    @Nullable
-    @Override
-    public AuthProvider onAuthProviderRequest(Context context, @NonNull AuthCallback callback, @NonNull String connectionName) {
-        AuthProvider provider = null;
-        if (connectionName.equals("google-oauth2")) {
-            Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
-            final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
-            provider = new GoogleAuthProvider(client, "google-server-client-id");
-        }
-        return provider;
-    }
-}
+GoogleAuthProvider provider = new GoogleAuthProvider(new AuthenticationAPIClient(auth0), "google-server-client-id");
+provider.setScopes(new Scope(DriveScopes.DRIVE_METADATA_READONLY));
+provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
+provider.forceRequestAccount(true);
 
+GoogleAuthHandler handler = new GoogleAuthHandler(provider);
 ```
 
-Make a new instance of your provider resolver and set it when building the Lock instance.
+Finally in the Lock Builder, call `withAuthHandlers` passing the recently created instance. 
 
 ```java
-final AuthHandler authHandler = new AuthHandler(); 
-final Lock.Builder builder = Lock.newBuilder(getAccount(), callback);
-Lock lock = builder.withProviderResolver(authHandler);
-                //...
-                .build();
+lock = Lock.newBuilder(auth0, authCallback)
+        .withAuthHandlers(handler)
+        //...
+        .build(this);
 ```
 
 That's it! When **Lock** needs to authenticate using that connection name, it will ask the `AuthProviderResolver` for a valid `AuthProvider`.

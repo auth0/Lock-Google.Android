@@ -29,7 +29,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -38,6 +37,7 @@ import android.widget.TextView;
 
 import com.auth0.android.Auth0;
 import com.auth0.android.authentication.AuthenticationAPIClient;
+import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.google.GoogleAuthProvider;
 import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.result.Credentials;
@@ -80,14 +80,14 @@ public class SimpleActivity extends AppCompatActivity implements View.OnClickLis
             }
 
             @Override
-            public void onFailure(@StringRes final int titleResource, @StringRes final int messageResource, Throwable cause) {
-                Log.e(TAG, "Failed with message " + getString(messageResource), cause);
+            public void onFailure(final AuthenticationException exception) {
+                Log.e(TAG, "Failed with message " + exception.getMessage());
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         AlertDialog dialog = new AlertDialog.Builder(SimpleActivity.this)
-                                .setTitle(titleResource)
-                                .setMessage(messageResource)
+                                .setTitle(R.string.com_auth0_google_authentication_failed_title)
+                                .setMessage(exception.getMessage())
                                 .create();
                         dialog.show();
                     }

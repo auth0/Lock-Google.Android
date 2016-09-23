@@ -102,7 +102,7 @@ public class GoogleAuthProvider extends AuthProvider {
         }
 
         Log.w(TAG, "Google services availability failed with status " + availabilityStatus);
-        callback.onFailure(apiHelper.getErrorDialog(availabilityStatus, REQUEST_RESOLVE_ERROR));
+        getCallback().onFailure(apiHelper.getErrorDialog(availabilityStatus, REQUEST_RESOLVE_ERROR));
     }
 
     @Override
@@ -141,12 +141,12 @@ public class GoogleAuthProvider extends AuthProvider {
                 .start(new AuthenticationCallback<Credentials>() {
                     @Override
                     public void onSuccess(Credentials credentials) {
-                        callback.onSuccess(credentials);
+                        getCallback().onSuccess(credentials);
                     }
 
                     @Override
                     public void onFailure(AuthenticationException error) {
-                        callback.onFailure(R.string.com_auth0_google_authentication_failed_title, R.string.com_auth0_google_authentication_failed_message, error);
+                        getCallback().onFailure(error);
                     }
                 });
     }
@@ -177,19 +177,19 @@ public class GoogleAuthProvider extends AuthProvider {
                     final Set<Scope> notGrantedScopes = new HashSet<>(requestedScopes);
                     notGrantedScopes.removeAll(grantedScopes);
                     Log.w(TAG, "Some scopes were not granted: " + notGrantedScopes.toString());
-                    callback.onFailure(R.string.com_auth0_google_authentication_failed_missing_permissions_title, R.string.com_auth0_google_authentication_failed_missing_permissions_message, null);
+                    getCallback().onFailure(new AuthenticationException("Some of the requested scopes were not granted by the user."));
                 }
             }
 
             @Override
             public void onCancel() {
                 Log.w(TAG, "User cancelled the log in dialog");
-                callback.onFailure(R.string.com_auth0_google_authentication_cancelled_title, R.string.com_auth0_google_authentication_cancelled_error_message, null);
+                getCallback().onFailure(new AuthenticationException("User cancelled the authentication consent dialog."));
             }
 
             @Override
             public void onError(Dialog errorDialog) {
-                callback.onFailure(errorDialog);
+                getCallback().onFailure(errorDialog);
             }
         };
     }

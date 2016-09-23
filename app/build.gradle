@@ -23,7 +23,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':lock-googleplus')
-    compile 'com.auth0.android:lock:2.0.0-beta.3'
+    compile 'com.auth0.android:lock:2.0.0'
     compile('com.google.apis:google-api-services-drive:v3-rev34-1.22.0') {
         exclude group: 'org.apache.httpcomponents'
     }
