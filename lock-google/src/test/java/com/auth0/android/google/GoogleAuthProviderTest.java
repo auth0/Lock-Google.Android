@@ -19,7 +19,6 @@ import com.google.android.gms.common.api.Scope;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsArrayContaining;
 import org.hamcrest.collection.IsArrayWithSize;
-import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -103,12 +102,19 @@ public class GoogleAuthProviderTest {
 
     @Test
     public void shouldHaveNonNullConnectionName() throws Exception {
-        MatcherAssert.assertThat(provider.getConnection(), Is.is(notNullValue()));
+        MatcherAssert.assertThat(provider.getConnection(), is(notNullValue()));
     }
 
     @Test
     public void shouldHaveDefaultConnectionName() throws Exception {
-        MatcherAssert.assertThat(provider.getConnection(), Is.is(CONNECTION_NAME));
+        MatcherAssert.assertThat(provider.getConnection(), is(CONNECTION_NAME));
+    }
+
+    @Test
+    public void shouldCreateWithCustomConnectionName() throws Exception {
+        provider = new GoogleAuthProviderMock("custom-connection", SERVER_CLIENT_ID, client, google);
+        MatcherAssert.assertThat(provider.getConnection(), is(notNullValue()));
+        MatcherAssert.assertThat(provider.getConnection(), is("custom-connection"));
     }
 
     @Test
@@ -203,7 +209,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithTextWhenSomeScopesWereRejected() throws Exception {
+    public void shouldFailWithExceptionWhenSomeScopesWereRejected() throws Exception {
         provider.setScopes(new Scope("some-scope"));
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
 
@@ -244,7 +250,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithTextWhenFacebookRequestIsCancelled() throws Exception {
+    public void shouldFailWithExceptionWhenRequestIsCancelled() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         provider.googleCallback.onCancel();
 
@@ -252,7 +258,7 @@ public class GoogleAuthProviderTest {
     }
 
     @Test
-    public void shouldFailWithTextWhenCredentialsRequestFailed() {
+    public void shouldFailWithExceptionWhenCredentialsRequestFailed() {
         shouldFailRequest(authenticationRequest);
         when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME))
                 .thenReturn(authenticationRequest);
