@@ -29,6 +29,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
 import com.auth0.googleplus.GooglePlusIdentityProvider;
@@ -39,29 +40,29 @@ import java.util.List;
 
 /**
  * Google Identity Provider to authenticate with native SDK with full support for Android M permission model.
- *
+ * <p>
  * In order to create it, you just need an Android context
  * <pre><code>
  *  GoogleIdentityProvider provider = new GoogleIdentityProvider(context);
  *  this.provider = provider;
  * </code></pre>
- *
+ * <p>
  * Then just set the callback
- *
+ * <p>
  * <pre><code>
  *  IdentityProviderCallback callback = ...
  *  provider.setCallback(callback);
  * </code></pre>
- *
+ * <p>
  * And start authentication from any of your Activities
- *
+ * <p>
  * <pre><code>
  *  provider.start(this, "{connection name}");
  *  this.authenticationInProgress = true;
  * </code></pre>
- *
+ * <p>
  * Then you need to pass along the result from {@link Activity#onResume()} and permission result from {@link Activity#onRequestPermissionsResult(int, String[], int[])}
- *
+ * <p>
  * <pre><code>
  *  @Override
  *  protected void onResume() {
@@ -85,9 +86,14 @@ import java.util.List;
 @TargetApi(23)
 public class GoogleIdentityProvider extends AuthorizedIdentityProvider {
 
-    @SuppressWarnings("deprecated")
-    public GoogleIdentityProvider(Context context) {
-        super(new GooglePlusIdentityProvider(context));
+    @Deprecated
+    public GoogleIdentityProvider(@NonNull Context context) {
+        //noinspection ConstantConditions
+        this(context, null);
+    }
+
+    public GoogleIdentityProvider(@NonNull Context context, @NonNull String serverClientId) {
+        super(new GooglePlusIdentityProvider(context, serverClientId));
     }
 
     @Override

@@ -28,6 +28,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -52,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
 
     private GoogleIdentityProvider provider;
-    private boolean authRequestInProgress;
     private ProgressDialog progressDialog;
 
     @Override
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         Auth0 auth0 = new Auth0(getString(R.string.auth0_client_id), getString(R.string.auth0_domain_name));
         final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
 
-        provider = new GoogleIdentityProvider(getApplicationContext());
+        provider = new GoogleIdentityProvider(getApplicationContext(), "SERVER_CLIENT_ID");
         provider.setCallback(new IdentityProviderCallback() {
             @Override
             public void onFailure(Dialog dialog) {
@@ -130,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        authRequestInProgress = true;
                         progressDialog = ProgressDialog.show(MainActivity.this, getString(R.string.progress_title), getString(R.string.progress_message));
                         provider.start(MainActivity.this, Strategies.GooglePlus.getName());
                     }
@@ -147,18 +146,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-
-
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (authRequestInProgress) {
-            authRequestInProgress = !provider.authorize(this, GoogleIdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE, Activity.RESULT_OK, getIntent());
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (provider != null && provider.authorize(this, GoogleIdentityProvider.GOOGLE_PLUS_TOKEN_REQUEST_CODE, Activity.RESULT_OK, data)) {
+            return;
         }
+        super.onActivityResult(requestCode, resultCode, data);
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

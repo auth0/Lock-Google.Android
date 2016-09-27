@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.auth0.core.Application;
@@ -39,10 +40,17 @@ import com.auth0.google.R;
 import com.auth0.identity.IdentityProvider;
 import com.auth0.identity.IdentityProviderCallback;
 import com.auth0.identity.IdentityProviderRequest;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.plus.Plus;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.common.api.Status;
 
 /**
  * Please use {@link com.auth0.google.GoogleIdentityProvider} instead that has support for Android M permission model.
@@ -57,14 +65,14 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     private Activity activity;
     private IdentityProviderCallback callback;
 
-    public GooglePlusIdentityProvider(Context context) {
-        this.apiClient = new GoogleApiClient.Builder(context)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Plus.API)
-                .addScope(Plus.SCOPE_PLUS_PROFILE)
-                .useDefaultAccount()
-                .build();
+    @Deprecated
+    public GooglePlusIdentityProvider(@NonNull Context context) {
+        //noinspection ConstantConditions
+        this(context, null);
+    }
+
+    public GooglePlusIdentityProvider(@NonNull Context context, @NonNull String serverClientId) {
+        this.apiClient = createAPIClient(context, serverClientId);
     }
 
     @Override
@@ -85,7 +93,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
         }
         authenticating = true;
         if (apiClient.isConnected()) {
-            fetchToken();
+            getGoogleAccount();
         } else {
             apiClient.connect();
         }
@@ -105,7 +113,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     public boolean authorize(Activity activity, int requestCode, int resultCode, Intent data) {
         this.activity = activity;
         if (resultCode == Activity.RESULT_CANCELED) {
-            Log.d(TAG, "User cannceled operation with code " + requestCode);
+            Log.d(TAG, "User canceled operation with code " + requestCode);
             authenticating = false;
             return false;
         }
@@ -115,12 +123,25 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
                 apiClient.connect();
             }
             return true;
-        } else if(requestCode == GOOGLE_PLUS_TOKEN_REQUEST_CODE) {
+        } else if (requestCode == GOOGLE_PLUS_TOKEN_REQUEST_CODE) {
             Log.v(TAG, "Received token request activity result " + resultCode);
             if (!apiClient.isConnected()) {
                 apiClient.connect();
             } else {
-                fetchToken();
+                if (resultCode == Activity.RESULT_OK) {
+                    final GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+
+                    if (result.isSuccess()) {
+                        final GoogleSignInAccount account = result.getSignInAccount();
+                        if (account.getIdToken() != null) {
+                            callback.onSuccess(Strategies.GooglePlus.getName(), account.getIdToken());
+                        } else {
+                            fetchToken(account.getEmail());
+                        }
+                    } else {
+                        callback.onFailure(R.string.com_auth0_google_authentication_failed_title, R.string.com_auth0_google_authentication_failed_message, null);
+                    }
+                }
             }
         }
         return authenticating;
@@ -129,13 +150,18 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
     @Override
     public void clearSession() {
         try {
-            if (apiClient.isConnected()) {
-                Plus.AccountApi.clearDefaultAccount(apiClient);
-            }
+            Auth.GoogleSignInApi.signOut(apiClient).setResultCallback(new ResultCallback<Status>() {
+                @Override
+                public void onResult(@NonNull Status status) {
+                    if (!status.isSuccess()) {
+                        Log.w(TAG, "Couldn't clear account and credentials");
+                    }
+                }
+            });
         } catch (IllegalStateException e) {
-            Log.e(TAG, "Failed to clear G+ Session", e);
+            Log.e(TAG, "Failed to clear Google Plus Session", e);
         } finally {
-            if (apiClient.isConnected()) {
+            if (apiClient != null && apiClient.isConnected()) {
                 apiClient.disconnect();
             }
             activity = null;
@@ -144,7 +170,7 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
 
     @Override
     public void onConnected(Bundle bundle) {
-        fetchToken();
+        getGoogleAccount();
         requestedLogin = false;
     }
 
@@ -187,6 +213,21 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
         }
     }
 
+    private GoogleApiClient createAPIClient(Context context, String serverClientId) {
+        final GoogleSignInOptions.Builder gsoBuilder = new GoogleSignInOptions.Builder()
+                .requestScopes(new Scope(Scopes.PLUS_LOGIN))
+                .requestEmail()
+                .requestProfile();
+        if (serverClientId != null) {
+            gsoBuilder.requestIdToken(serverClientId);
+        }
+        GoogleSignInOptions gso = gsoBuilder.build();
+
+        return new GoogleApiClient.Builder(context, this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+    }
+
     private void requestAuthentication(ConnectionResult result) {
         if (authenticating) {
             Log.v(TAG, "Showing G+ consent activity to the user");
@@ -202,7 +243,12 @@ public class GooglePlusIdentityProvider implements IdentityProvider, GoogleApiCl
         }
     }
 
-    private void fetchToken() {
-        new FetchTokenAsyncTask(apiClient, activity, callback).execute("email", "profile");
+    private void getGoogleAccount() {
+        final Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(apiClient);
+        activity.startActivityForResult(signInIntent, GOOGLE_PLUS_TOKEN_REQUEST_CODE);
+    }
+
+    private void fetchToken(String email) {
+        new FetchTokenAsyncTask(activity, email, callback).execute("https://www.googleapis.com/auth/plus.login", "email", "profile");
     }
 }

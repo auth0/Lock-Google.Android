@@ -39,21 +39,19 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.GooglePlayServicesAvailabilityException;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.plus.Plus;
 
 import java.io.IOException;
 
 public class FetchTokenAsyncTask extends AsyncTask<String, Void, Object> {
 
     public static final String TAG = FetchTokenAsyncTask.class.getName();
-    private final GoogleApiClient apiClient;
     private final Activity context;
+    private final String email;
     private final IdentityProviderCallback callback;
 
-    public FetchTokenAsyncTask(GoogleApiClient apiClient, Activity context, IdentityProviderCallback callback) {
-        this.apiClient = apiClient;
+    public FetchTokenAsyncTask(Activity context, String email, IdentityProviderCallback callback) {
         this.context = context;
+        this.email = email;
         this.callback = callback;
     }
 
@@ -62,10 +60,11 @@ public class FetchTokenAsyncTask extends AsyncTask<String, Void, Object> {
     protected Object doInBackground(String... params) {
         FetchTokenResultHolder holder = null;
         try {
+            final String magicString = "oauth2:" + TextUtils.join(" ", params);
             String accessToken = GoogleAuthUtil.getToken(
                     context,
-                    Plus.AccountApi.getAccountName(apiClient),
-                    "oauth2:" + TextUtils.join(" ", params));
+                    email,
+                    magicString);
 
             holder = new FetchTokenResultHolder(accessToken);
         } catch (IOException transientEx) {
