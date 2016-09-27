@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.6.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.6.0) (2016-09-29)
+[Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/2.5.0...2.6.0)
+
+**Deprecated**
+- Deprecate auth_token flow, use id_token instead. [v1] [\#25](https://github.com/auth0/Lock-GooglePlus.Android/pull/25) ([lbalmaceda](https://github.com/lbalmaceda))
+
+
 ## [2.5.0](https://github.com/auth0/Lock-GooglePlus.Android/tree/2.5.0) (2016-08-29)
 [Full Changelog](https://github.com/auth0/Lock-GooglePlus.Android/compare/2.4.0...2.5.0)
 

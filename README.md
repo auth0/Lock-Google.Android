@@ -30,7 +30,7 @@ If you also have a Web Application, and a Google clientID & secret for it config
 The Lock-GooglePlus is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
 
 ```gradle
-compile 'com.auth0.android:lock-googleplus:2.5.+'
+compile 'com.auth0.android:lock-googleplus:2.6.+'
 ```
 
 Then in your project's `AndroidManifest.xml` add the following entry:
