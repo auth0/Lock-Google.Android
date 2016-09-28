@@ -10,12 +10,12 @@ public class GoogleAuthProviderMock extends GoogleAuthProvider {
     GoogleCallback googleCallback;
     boolean rememberLastLogin;
 
-    public GoogleAuthProviderMock(@NonNull String connectionName, @NonNull String serverClientId, @NonNull AuthenticationAPIClient client, GoogleAPI google) {
+    public GoogleAuthProviderMock(@NonNull String connectionName, @NonNull String serverClientId, @NonNull AuthenticationAPIClient client, @NonNull GoogleAPI google) {
         super(connectionName, serverClientId, client);
         this.google = google;
     }
 
-    public GoogleAuthProviderMock(@NonNull String serverClientId, @NonNull AuthenticationAPIClient client, GoogleAPI google) {
+    public GoogleAuthProviderMock(@NonNull String serverClientId, @NonNull AuthenticationAPIClient client, @NonNull GoogleAPI google) {
         super(serverClientId, client);
         this.google = google;
     }

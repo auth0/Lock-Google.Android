@@ -15,8 +15,8 @@ Android 4.0 or later & Google Play Services 9.+
 
 ## Before you start using Lock-Google
 
-In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your `web client id`.
-We recommend following Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then generate a new `OAuth 2.0 client id` for a Web Application in the [Credentials](https://console.developers.google.com/apis/credentials?project=_) page. Take the value and use it to configure your Google Connection's `Client ID` in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social). Save this value for later as it will be used in the android provider configuration.
+In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your `Web Client ID`.
+We recommend following Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then generate a new `OAuth 2.0 Client ID` for a Web Application in the [Credentials](https://console.developers.google.com/apis/credentials?project=_) page. Take the value and use it to configure your Google Connection's `Client ID` in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social). Save this value for later as it will be used in the android provider configuration.
 
 
 > For more information please check Google's [documentation](https://developers.google.com/identity/sign-in/android/)
@@ -27,10 +27,10 @@ If you also have a Web Application, and a Google clientID & secret for it config
 
 ## Install
 
-The Lock-GooglePlus is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
+The Lock-Google is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
 
 ```gradle
-compile 'com.auth0.android:lock-googleplus:2.5.+'
+compile 'com.auth0.android:lock-google:1.0.+'
 ```
 
 Then in your project's `AndroidManifest.xml` add the following entry inside the application tag.
@@ -60,11 +60,11 @@ This library includes an implementation of the `AuthHandler` interface for you t
  
 ```java
 Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
+AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
 
-GoogleAuthProvider provider = new GoogleAuthProvider(new AuthenticationAPIClient(auth0), "google-server-client-id");
+GoogleAuthProvider provider = new GoogleAuthProvider("google-server-client-id", client);
 provider.setScopes(new Scope(DriveScopes.DRIVE_METADATA_READONLY));
 provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
-provider.forceRequestAccount(true);
 
 GoogleAuthHandler handler = new GoogleAuthHandler(provider);
 ```
@@ -84,12 +84,12 @@ That's it! When **Lock** needs to authenticate using that connection name, it wi
 
 ### Without Lock
 
-Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `server client id` obtained in the Project Credential's page.
+Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `Server Client ID` obtained in the Project Credential's page.
 
 ```java
 Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
-final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
-GoogleAuthProvider provider = new GoogleAuthProvider(client, "google-server-client-id");
+AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
+GoogleAuthProvider provider = new GoogleAuthProvider("google-server-client-id", client);
 ```
 
 Override your activity's `onActivityResult` method and redirect the received parameters to the provider instance's `authorize` method.
@@ -115,10 +115,10 @@ That's it! You'll receive the result in the `AuthCallback` you passed.
 > We provide this demo in the `SimpleActivity` class.
 
 ## Using a custom connection name
-To use a custom social connection name to authorize against Auth0, call `setConnection` with your new connection name.
+To use a custom social connection name to authorize against Auth0, create the GoogleAuthProvider instance using the second constructor:
 
 ```java
-provider.setConnection("my-connection")
+GoogleAuthProvider provider = new GoogleAuthProvider("my-connection", "google-server-client-id", client);
 ```
 
 ## Requesting a custom Scope
@@ -173,4 +173,4 @@ Auth0 helps you to:
 
 ## License
 
-Lock-GooglePlus is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
+Lock-Google is available under the MIT license. See the [LICENSE](LICENSE) file for more info.

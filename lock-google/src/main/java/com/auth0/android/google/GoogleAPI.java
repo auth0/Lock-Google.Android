@@ -173,6 +173,9 @@ class GoogleAPI implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.
         client = null;
     }
 
+    /**
+     * Logs out the current signed in account.
+     */
     void logout() {
         try {
             Auth.GoogleSignInApi.signOut(client).setResultCallback(new ResultCallback<Status>() {
@@ -186,6 +189,16 @@ class GoogleAPI implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.
         } catch (IllegalStateException e) {
             Log.e(TAG, "Failed to clear the Google Plus Session", e);
         }
+    }
+
+    /**
+     * Disconnects the current GoogleAPIClient instance. After this method is called the provider should not be used.
+     */
+    void disconnect() {
+        if (client != null && client.isConnected()) {
+            client.disconnect();
+        }
+        client = null;
     }
 
     private GoogleApiClient createGoogleAPIClient(String serverClientId, Scope[] scopes) {

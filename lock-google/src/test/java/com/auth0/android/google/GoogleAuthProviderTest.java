@@ -45,6 +45,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class GoogleAuthProviderTest {
 
@@ -277,6 +278,13 @@ public class GoogleAuthProviderTest {
         provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<>(Arrays.asList(provider.getScopes()))));
 
         verify(callback).onSuccess(eq(credentials));
+    }
+
+    @Test
+    public void shouldDisconnectGoogleClientBeforeReUsing() throws Exception {
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        verify(google, times(1)).disconnect();
     }
 
     @Test

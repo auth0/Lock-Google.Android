@@ -101,6 +101,9 @@ public class GoogleAuthProvider extends AuthProvider {
 
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
+        if (google != null) {
+            google.disconnect();
+        }
         google = createGoogleAPI(activity, rememberLastLogin);
         final int availabilityStatus = google.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
