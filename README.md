@@ -1,6 +1,6 @@
 # Lock-Google
 
-[![Build Status](https://travis-ci.org/auth0/Lock-GooglePlus.Android.svg?branch=master)](https://travis-ci.org/auth0/Lock-GooglePlus.Android)
+[![Build Status](https://travis-ci.org/auth0/Lock-Google.Android.svg?branch=master)](https://travis-ci.org/auth0/Lock-Google.Android)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat)](http://doge.mit-license.org)
 [![Maven Central](https://img.shields.io/maven-central/v/com.auth0.android/lock-googleplus.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.auth0.android%22%20AND%20a%3A%22lock-googleplus%22)
 [![Bintray](https://api.bintray.com/packages/auth0/lock-android/lock-googleplus/images/download.svg) ](https://bintray.com/auth0/lock-android/lock-googleplus/_latestVersion)
