@@ -10,6 +10,7 @@ import android.util.Log;
 import com.auth0.android.authentication.AuthenticationAPIClient;
 import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.callback.AuthenticationCallback;
+import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.provider.AuthProvider;
 import com.auth0.android.result.Credentials;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -93,7 +94,7 @@ public class GoogleAuthProvider extends AuthProvider {
         }
 
         Log.w(TAG, "Google services availability failed with status " + availabilityStatus);
-        getCallback().onFailure(google.getErrorDialog(availabilityStatus, REQUEST_RESOLVE_ERROR));
+        getSafeCallback().onFailure(google.getErrorDialog(availabilityStatus, REQUEST_RESOLVE_ERROR));
     }
 
     @Override
@@ -133,12 +134,12 @@ public class GoogleAuthProvider extends AuthProvider {
                 .start(new AuthenticationCallback<Credentials>() {
                     @Override
                     public void onSuccess(Credentials credentials) {
-                        getCallback().onSuccess(credentials);
+                        getSafeCallback().onSuccess(credentials);
                     }
 
                     @Override
                     public void onFailure(AuthenticationException error) {
-                        getCallback().onFailure(error);
+                        getSafeCallback().onFailure(error);
                     }
                 });
     }
@@ -167,19 +168,39 @@ public class GoogleAuthProvider extends AuthProvider {
                     final Set<Scope> notGrantedScopes = new HashSet<>(requestedScopes);
                     notGrantedScopes.removeAll(grantedScopes);
                     Log.w(TAG, "Some scopes were not granted: " + notGrantedScopes.toString());
-                    getCallback().onFailure(new AuthenticationException("Some of the requested permissions were not granted."));
+                    getSafeCallback().onFailure(new AuthenticationException("Some of the requested permissions were not granted."));
                 }
             }
 
             @Override
             public void onCancel() {
                 Log.w(TAG, "User cancelled the log in dialog");
-                getCallback().onFailure(new AuthenticationException("You need to authorize the application"));
+                getSafeCallback().onFailure(new AuthenticationException("You need to authorize the application"));
             }
 
             @Override
             public void onError(Dialog errorDialog) {
-                getCallback().onFailure(errorDialog);
+                getSafeCallback().onFailure(errorDialog);
+            }
+        };
+    }
+
+    private AuthCallback getSafeCallback() {
+        final AuthCallback callback = getCallback();
+        return callback != null ? callback : new AuthCallback() {
+            @Override
+            public void onFailure(@NonNull Dialog dialog) {
+                Log.w(TAG, "Using callback when no auth session was running");
+            }
+
+            @Override
+            public void onFailure(AuthenticationException exception) {
+                Log.w(TAG, "Using callback when no auth session was running");
+            }
+
+            @Override
+            public void onSuccess(@NonNull Credentials credentials) {
+                Log.w(TAG, "Using callback when no auth session was running");
             }
         };
     }
