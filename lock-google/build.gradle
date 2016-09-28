@@ -1,0 +1,99 @@
+apply plugin: 'com.android.library'
+
+def semver = defineVersion()
+version = semver.stringVersion
+
+logger.lifecycle("Using version ${version} for ${name}")
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '23.0.2'
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 24
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    lintOptions {
+        lintConfig file('../gradle/lint.xml')
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:24.1.1'
+    compile 'com.google.android.gms:play-services-auth:9.2.1'
+    compile 'com.auth0.android:auth0:1.0.1'
+    testCompile libraries.testing
+}
+
+
+android.testOptions.unitTests.all {
+    // Configure whether failing tests should fail the build
+    ignoreFailures false
+
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
+
+def defineVersion() {
+    def current = describeGit(false)
+    def snapshot = current == null
+    if (snapshot) {
+        current = describeGit(snapshot, "0.0.1")
+    }
+    return new Semver(snapshot: snapshot, version: current)
+}
+
+def describeGit(boolean snapshot, String defaultValue = null) {
+    def arguments = ['describe', '--tags']
+    arguments.add(snapshot ? '--abbrev=0' : '--exact-match')
+    def stdout = new ByteArrayOutputStream()
+    def string = defaultValue
+    try {
+        def result = project.exec {
+            executable = 'git'
+            args = arguments
+            standardOutput = stdout
+        }
+
+        result.assertNormalExitValue()
+
+        if (stdout.toByteArray().length > 0) {
+            string = stdout.toString().replace("\n", "")
+        }
+    } catch (Exception e) {
+        logger.debug("Failed git describe command", e)
+    } finally {
+        stdout.close()
+    }
+    return string
+}
+
+class Semver {
+    def version
+    def snapshot
+
+    def getStringVersion() {
+        return snapshot ? version + "-SNAPSHOT" : version
+    }
+}
+
+apply from: '../scripts/maven.gradle'
+apply from: '../scripts/bintray.gradle'

@@ -1,0 +1,18 @@
+language: android
+android:
+  components:
+  - tools
+  - build-tools-23.0.2
+  - android-23
+  - extra-google-google_play_services
+  - extra-google-m2repository
+  - extra-android-m2repository
+  - addon-google_apis-google-23
+script:
+- "./gradlew clean test --continue"
+branches:
+  only:
+  - master
+notifications:
+  slack:
+    secure: cvQy0e/yvBWi9wMHnBjpq7CBbMCC7/KsvNlao0f14X36FeD/v7iVLe6NJpo9mfp7FqwiAhsbtavhtG7Mc8JxBtNo4UXKKK2kMDGRxGUMfrL7UNXD8Npd6Jw8TSMxvAz7aunH+gCa8h0BJnLbmk21mXj36S9dQ4AYAYCeIiOWWc79rdx2Z90/DX4zDBf/KmktI4n72nvIfIKK8rtS5MWiXdMAwa8ziK7U4/P0xQN81/YMrpUedcmr//sN6TKpJ7y9zpdUmQzKMwr6XPrUmGvOppxVkIbDlRAmH8cVkHWPEVfWkPkth9R+dXeZZWeDYZhgSFkwZyWCbQYcxc90R/PE786/Qe9NFNnXa+LSCGd1siLB28TsMt6pv3wVW3hnhQEVMnKUBqa3pcv+kcq1hqz0ffkZ6icvTzGtAbhmW5e7WmbhvIz0EBFPRWJ2181xcXS4TDskuZh2x4cUWjPvdsCnLWCQPoK4BSSN70RB5lgIGtEQBaF7e6c2B4KOuTH0O3sGmhPm/J+HFEKgL57Z40dvPenNpMQVcs+SB89AyPx2WhnLYvD2jUY2kJHVjsx/sLfUQ0AFAc6IrxYlcxr7N9YGqOZFpD7ZOYcf7SCYPNnvpYBeUEMfAWIGabGM0fqrYKlTO6UzTiYxrl9v3mVAvvQjDCcKo/GK0ufLgpWjnRzP/2g=
