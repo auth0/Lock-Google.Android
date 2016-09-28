@@ -35,20 +35,31 @@ public class GoogleAuthProvider extends AuthProvider {
 
     private final AuthenticationAPIClient auth0;
     private final String serverClientId;
+    private final String connectionName;
     private Scope[] scopes;
-    private String connectionName;
-    private GoogleAPI apiHelper;
+    private GoogleAPI google;
     private String[] androidPermissions;
 
     /**
+     * Creates Google Auth provider for default Google connection 'google-oauth2'.
      * @param client         an Auth0 AuthenticationAPIClient instance
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      */
-    public GoogleAuthProvider(@NonNull AuthenticationAPIClient client, @NonNull String serverClientId) {
+    public GoogleAuthProvider(@NonNull String serverClientId, @NonNull AuthenticationAPIClient client) {
+        this("google-oauth2", serverClientId, client);
+    }
+
+    /**
+     * Creates Google Auth provider for a specific Google connection.
+     * @param connectionName of Auth0's connection used to Authenticate after user is authenticated with Google. Must be a Google connection
+     * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
+     * @param client         an Auth0 AuthenticationAPIClient instance
+     */
+    public GoogleAuthProvider(@NonNull String connectionName, @NonNull String serverClientId, @NonNull AuthenticationAPIClient client) {
         this.auth0 = client;
         this.serverClientId = serverClientId;
         this.scopes = new Scope[]{new Scope(Scopes.PLUS_LOGIN)};
-        this.connectionName = "google-oauth2";
+        this.connectionName = connectionName;
         this.androidPermissions = new String[0];
     }
 
@@ -72,36 +83,27 @@ public class GoogleAuthProvider extends AuthProvider {
         this.scopes = scope;
     }
 
-    /**
-     * Change the default connection to use when requesting the token to Auth0 server. By default this value is "google-oauth2".
-     *
-     * @param connection that will be used to authenticate the user against Auth0.
-     */
-    public void setConnection(@NonNull String connection) {
-        this.connectionName = connection;
-    }
-
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
-        apiHelper = createAPIHelper(activity);
-        final int availabilityStatus = apiHelper.isGooglePlayServicesAvailable();
+        google = createAPIHelper(activity);
+        final int availabilityStatus = google.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
-            apiHelper.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
+            google.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
             return;
         }
 
         Log.w(TAG, "Google services availability failed with status " + availabilityStatus);
-        getCallback().onFailure(apiHelper.getErrorDialog(availabilityStatus, REQUEST_RESOLVE_ERROR));
+        getCallback().onFailure(google.getErrorDialog(availabilityStatus, REQUEST_RESOLVE_ERROR));
     }
 
     @Override
     public boolean authorize(int requestCode, int resultCode, @Nullable Intent intent) {
-        return apiHelper.parseSignInResult(requestCode, resultCode, intent);
+        return google.parseSignInResult(requestCode, resultCode, intent);
     }
 
     @Override
     public boolean authorize(@Nullable Intent intent) {
-        Log.w(TAG, "Callled authorize in a native Google auth provider");
+        Log.w(TAG, "Called authorize in a native Google auth provider");
         return false;
     }
 
@@ -119,9 +121,9 @@ public class GoogleAuthProvider extends AuthProvider {
     @Override
     public void clearSession() {
         super.clearSession();
-        if (apiHelper != null) {
-            apiHelper.logoutAndClearState();
-            apiHelper = null;
+        if (google != null) {
+            google.logoutAndClearState();
+            google = null;
         }
     }
 

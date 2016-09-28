@@ -1,4 +1,4 @@
-# Lock-GooglePlus
+# Lock-Google
 
 [![Build Status](https://travis-ci.org/auth0/Lock-GooglePlus.Android.svg?branch=master)](https://travis-ci.org/auth0/Lock-GooglePlus.Android)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat)](http://doge.mit-license.org)
@@ -7,7 +7,7 @@
 
 [Auth0](https://auth0.com) is an authentication broker that supports social identity providers as well as enterprise identity providers such as Active Directory, LDAP, Google Apps and Salesforce.
 
-Lock-GooglePlus helps you integrate native Login with [Google+ Android SDK](https://developers.google.com/+/mobile/android/) and [Lock](https://auth0.com/lock)
+Lock-Google helps you integrate native Login with [Google+ Android SDK](https://developers.google.com/+/mobile/android/) and [Lock](https://auth0.com/lock)
 
 ## Requirements
 
