@@ -21,8 +21,8 @@ public class GoogleAuthHandler implements AuthHandler {
 
     @Nullable
     @Override
-    public AuthProvider providerFor(@NonNull String strategy, @NonNull String connection) {
-        if ("google-oauth2".equals(connection)) {
+    public AuthProvider providerFor(@Nullable String strategy, @NonNull String connection) {
+        if ("google-oauth2".equals(strategy)) {
             return provider;
         }
         return null;

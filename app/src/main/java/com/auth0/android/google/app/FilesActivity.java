@@ -89,7 +89,7 @@ public class FilesActivity extends AppCompatActivity {
         GoogleAuthProvider provider = new GoogleAuthProvider(getString(R.string.google_server_client_id), new AuthenticationAPIClient(getAccount()));
         provider.setScopes(new Scope(DriveScopes.DRIVE_METADATA_READONLY));
         provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
-        provider.forceRequestAccount(true);
+        provider.rememberLastLogin(false);
         return provider;
     }
 

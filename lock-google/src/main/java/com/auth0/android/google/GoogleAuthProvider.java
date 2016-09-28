@@ -40,7 +40,7 @@ public class GoogleAuthProvider extends AuthProvider {
     private Scope[] scopes;
     private GoogleAPI google;
     private String[] androidPermissions;
-    private boolean forceRequestAccount;
+    private boolean rememberLastLogin;
 
     /**
      * Creates Google Auth provider for default Google connection 'google-oauth2'.
@@ -65,6 +65,7 @@ public class GoogleAuthProvider extends AuthProvider {
         this.scopes = new Scope[]{new Scope(Scopes.PLUS_LOGIN)};
         this.connectionName = connectionName;
         this.androidPermissions = new String[0];
+        this.rememberLastLogin = true;
     }
 
     /**
@@ -80,11 +81,12 @@ public class GoogleAuthProvider extends AuthProvider {
     /**
      * Whether it should clear the session and logout any existing user before trying to authenticate or not.
      * This can be useful when using Lock, so that the user always need to select which account/credentials to use.
+     * Defaults to true.
      *
-     * @param force the new force flag value.
+     * @param rememberLastLogin the new flag value.
      */
-    public void forceRequestAccount(boolean force) {
-        this.forceRequestAccount = force;
+    public void rememberLastLogin(boolean rememberLastLogin) {
+        this.rememberLastLogin = rememberLastLogin;
     }
 
     /**
@@ -99,7 +101,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
-        google = createGoogleAPI(activity, forceRequestAccount);
+        google = createGoogleAPI(activity, rememberLastLogin);
         final int availabilityStatus = google.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
             google.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
@@ -165,9 +167,9 @@ public class GoogleAuthProvider extends AuthProvider {
         return connectionName;
     }
 
-    GoogleAPI createGoogleAPI(Activity activity, boolean forceRequestAccount) {
+    GoogleAPI createGoogleAPI(Activity activity, boolean rememberLastLogin) {
         final GoogleAPI googleAPI = new GoogleAPI(activity, serverClientId, scopes, createTokenListener());
-        googleAPI.forceRequestAccount(forceRequestAccount);
+        googleAPI.rememberLastLogin(rememberLastLogin);
         return googleAPI;
     }
 

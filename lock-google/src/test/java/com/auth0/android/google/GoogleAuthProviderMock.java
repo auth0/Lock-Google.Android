@@ -8,7 +8,7 @@ import com.auth0.android.authentication.AuthenticationAPIClient;
 public class GoogleAuthProviderMock extends GoogleAuthProvider {
     GoogleAPI google;
     GoogleCallback googleCallback;
-    boolean logoutBeforeLogin;
+    boolean rememberLastLogin;
 
     public GoogleAuthProviderMock(@NonNull String connectionName, @NonNull String serverClientId, @NonNull AuthenticationAPIClient client, GoogleAPI google) {
         super(connectionName, serverClientId, client);
@@ -21,9 +21,9 @@ public class GoogleAuthProviderMock extends GoogleAuthProvider {
     }
 
     @Override
-    GoogleAPI createGoogleAPI(Activity activity, boolean forceRequestAccount) {
+    GoogleAPI createGoogleAPI(Activity activity, boolean rememberLastLogin) {
         createTokenListener();
-        this.logoutBeforeLogin = forceRequestAccount;
+        this.rememberLastLogin = rememberLastLogin;
         return google;
     }
 
@@ -34,6 +34,6 @@ public class GoogleAuthProviderMock extends GoogleAuthProvider {
     }
 
     boolean willLogoutBeforeLogin() {
-        return logoutBeforeLogin;
+        return !rememberLastLogin;
     }
 }

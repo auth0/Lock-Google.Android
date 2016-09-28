@@ -183,7 +183,7 @@ public class GoogleAuthProviderTest {
 
     @Test
     public void shouldLogoutBeforeLoginIfRequested() throws Exception {
-        provider.forceRequestAccount(true);
+        provider.rememberLastLogin(false);
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         assertThat(provider.willLogoutBeforeLogin(), is(true));
     }

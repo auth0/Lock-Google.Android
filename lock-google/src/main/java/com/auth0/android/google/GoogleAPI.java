@@ -33,7 +33,7 @@ class GoogleAPI implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.
     private boolean resolvingError;
     private int signInRequestCode;
     private int errorResolutionRequestCode;
-    private boolean forceRequestAccount;
+    private boolean rememberLastLogin;
 
     /**
      * @param activity       a valid activity context to use
@@ -50,10 +50,10 @@ class GoogleAPI implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.
     /**
      * Whether it should clear the session and logout any existing user before trying to authenticate or not.
      *
-     * @param forceRequestAccount the new force flag value.
+     * @param rememberLastLogin the new force flag value.
      */
-    public void forceRequestAccount(boolean forceRequestAccount) {
-        this.forceRequestAccount = forceRequestAccount;
+    public void rememberLastLogin(boolean rememberLastLogin) {
+        this.rememberLastLogin = rememberLastLogin;
     }
 
     @Override
@@ -205,7 +205,7 @@ class GoogleAPI implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.
 
 
     private void requestGoogleAccount(int signInRequestCode) {
-        if (forceRequestAccount) {
+        if (!rememberLastLogin) {
             logout();
         }
         final Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(client);
