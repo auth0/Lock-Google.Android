@@ -15,8 +15,8 @@ Android 4.0 or later & Google Play Services 9.+
 
 ## Before you start using Lock-Google
 
-In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your `web client id`.
-We recommend following Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then generate a new `OAuth 2.0 client id` for a Web Application in the [Credentials](https://console.developers.google.com/apis/credentials?project=_) page. Take the value and use it to configure your Google Connection's `Client ID` in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social). Save this value for later as it will be used in the android provider configuration.
+In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your `Web Client ID`.
+We recommend following Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then generate a new `OAuth 2.0 Client ID` for a Web Application in the [Credentials](https://console.developers.google.com/apis/credentials?project=_) page. Take the value and use it to configure your Google Connection's `Client ID` in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social). Save this value for later as it will be used in the android provider configuration.
 
 
 > For more information please check Google's [documentation](https://developers.google.com/identity/sign-in/android/)
@@ -27,13 +27,13 @@ If you also have a Web Application, and a Google clientID & secret for it config
 
 ## Install
 
-The Lock-GooglePlus is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
+The Lock-Google is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
 
 ```gradle
-compile 'com.auth0.android:lock-googleplus:2.5.+'
+compile 'com.auth0.android:lock-google:1.0.+'
 ```
 
-Then in your project's `AndroidManifest.xml` add the following entry:
+Then in your project's `AndroidManifest.xml` add the following entry inside the application tag.
 
 ```xml
 <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
@@ -56,46 +56,40 @@ Google Sign-In does not require additional android permissions.
 
 ### With Lock
 
-Create a new class and make it implement `AuthProviderResolver`. On the `onAuthProviderRequest` method compare the `connectionName` value against the connection you would like this provider to handle, and if it's a match return a new `GoogleAuthProvider` instance, with an `AuthenticationAPIClient` and the `server client id` obtained in the Project Credential's page.
-
+This library includes an implementation of the `AuthHandler` interface for you to use it directly with **Lock**. Create a new instance of the `GoogleAuthHandler` class passing a valid `GoogleAuthProvider`. Don't forget to customize the scopes if you need to. 
+ 
 ```java
-public class AuthHandler implements AuthProviderResolver {
+Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
+AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
 
-    @Nullable
-    @Override
-    public AuthProvider onAuthProviderRequest(Context context, @NonNull AuthCallback callback, @NonNull String connectionName) {
-        AuthProvider provider = null;
-        if (connectionName.equals("google-oauth2")) {
-            Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
-            final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
-            provider = new GoogleAuthProvider(client, "google-server-client-id");
-        }
-        return provider;
-    }
-}
+GoogleAuthProvider provider = new GoogleAuthProvider("google-server-client-id", client);
+provider.setScopes(new Scope(DriveScopes.DRIVE_METADATA_READONLY));
+provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
 
+GoogleAuthHandler handler = new GoogleAuthHandler(provider);
 ```
 
-Make a new instance of your provider resolver and set it when building the Lock instance.
+Finally in the Lock Builder, call `withAuthHandlers` passing the recently created instance. 
 
 ```java
-final AuthHandler authHandler = new AuthHandler(); 
-final Lock.Builder builder = Lock.newBuilder(getAccount(), callback);
-Lock lock = builder.withProviderResolver(authHandler);
-                //...
-                .build();
+lock = Lock.newBuilder(auth0, authCallback)
+        .withAuthHandlers(handler)
+        //...
+        .build(this);
 ```
 
 That's it! When **Lock** needs to authenticate using that connection name, it will ask the `AuthProviderResolver` for a valid `AuthProvider`.
 
+> We provide this demo in the `FilesActivity` class. We also use the Google Drive SDK to get the user's Drive Files and show them on a list. Because of the Drive Scope, the SDK requires the user to grant the `GET_ACCOUNTS` android permission first. Keep in mind that _this only affects this demo_ and that if you only need to authenticate the user and get his public profile, the `GoogleAuthProvider` won't ask for additional permissions.
+
 ### Without Lock
 
-Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `server client id` obtained in the Project Credential's page.
+Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `Server Client ID` obtained in the Project Credential's page.
 
 ```java
 Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
-final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
-GoogleAuthProvider provider = new GoogleAuthProvider(client, "google-server-client-id");
+AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
+GoogleAuthProvider provider = new GoogleAuthProvider("google-server-client-id", client);
 ```
 
 Override your activity's `onActivityResult` method and redirect the received parameters to the provider instance's `authorize` method.
@@ -118,12 +112,30 @@ provider.start(this, callback, RC_PERMISSIONS, RC_AUTHENTICATION);
 
 That's it! You'll receive the result in the `AuthCallback` you passed.
 
+> We provide this demo in the `SimpleActivity` class.
+
 ## Using a custom connection name
-To use a custom social connection name to authorize against Auth0, call `setConnection` with your new connection name.
+To use a custom social connection name to authorize against Auth0, create the GoogleAuthProvider instance using the second constructor:
 
 ```java
-provider.setConnection("my-connection")
+GoogleAuthProvider provider = new GoogleAuthProvider("my-connection", "google-server-client-id", client);
 ```
+
+## Requesting a custom Scope
+By default, the scope `Scopes.PLUS_LOGIN` is requested. You can customize the Scopes by calling `setScopes` with the list of Scopes. Each Google API (Auth, Drive, Plus..) specify it's own list of Scopes.
+
+```java
+provider.setScopes(Arrays.asList(new Scope(Scopes.PLUS_ME), new Scope(Scopes.PLUS_LOGIN)));
+```
+
+## Using custom Android Runtime Permissions
+This provider doesn't require any special Android Manifest Permission to authenticate the user. But if your use case requires them, you can let the AuthProvider handle them for you. Use the `setRequiredPermissions` method.
+ 
+```java
+provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
+```
+
+If you're not using Lock, then you'll have to handle the permission request result yourself. To do so, make your activity implement `ActivityCompat.OnRequestPermissionsResultCallback` and override the `onRequestPermissionsResult` method, calling `provider.onRequestPermissionsResult` with the activity context and the received parameters.
 
 ## Log out / Clear account.
 To log out the user so that the next time he's prompted to select an account call `clearSession`. After you do this the provider state will be invalid and you will need to call `start` again before trying to `authorize` a result.
@@ -131,7 +143,7 @@ To log out the user so that the next time he's prompted to select an account cal
 ```java
 provider.clearSession();
 ```
- 
+
 > Calling `stop` has the same effect.
 
 
@@ -161,4 +173,4 @@ Auth0 helps you to:
 
 ## License
 
-Lock-GooglePlus is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
+Lock-Google is available under the MIT license. See the [LICENSE](LICENSE) file for more info.

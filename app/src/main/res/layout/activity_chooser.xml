@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-  ~ activity_main.xml
+  ~ activity_chooser.xml
   ~
   ~ Copyright (c) 2015 Auth0 (http://auth0.com)
   ~
@@ -29,30 +29,30 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.auth0.android.google.app.MainActivity">
+    tools:context=".SimpleActivity">
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/loginButton"
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp"
         android:gravity="center_horizontal"
+        android:text="This demo shows how to log in using the Google Native Social Authentication Provider."
         android:textSize="20sp" />
 
     <Button
-        android:id="@+id/loginButton"
+        android:id="@+id/tokenLoginButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="Log in with Google" />
+        android:text="Simple Log In (TOKEN)" />
 
     <Button
-        android:id="@+id/logoutButton"
+        android:id="@+id/photosLoginButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/tokenLoginButton"
         android:layout_centerHorizontal="true"
-        android:text="Log out" />
+        android:text="Log In Using Lock (DRIVE FILES)" />
+
 </RelativeLayout>

@@ -29,7 +29,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -42,12 +41,11 @@ import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.google.GoogleAuthProvider;
 import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.result.Credentials;
-import com.auth0.google.app.R;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class SimpleActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String TAG = MainActivity.class.getName();
+    private static final String TAG = SimpleActivity.class.getName();
     private static final int RC_PERMISSIONS = 110;
     private static final int RC_AUTHENTICATION = 111;
 
@@ -58,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_simple);
 
         message = (TextView) findViewById(R.id.textView);
         Button loginButton = (Button) findViewById(R.id.loginButton);
@@ -87,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
+                        AlertDialog dialog = new AlertDialog.Builder(SimpleActivity.this)
                                 .setTitle("Failed!")
                                 .setMessage(exception.getLocalizedMessage())
                                 .create();

@@ -6,28 +6,34 @@ import android.support.annotation.NonNull;
 import com.auth0.android.authentication.AuthenticationAPIClient;
 
 public class GoogleAuthProviderMock extends GoogleAuthProvider {
-    GoogleAPI apiHelper;
+    GoogleAPI google;
     GoogleCallback googleCallback;
+    boolean rememberLastLogin;
 
-    public GoogleAuthProviderMock(@NonNull String connectionName, @NonNull String serverClientId, @NonNull AuthenticationAPIClient client, GoogleAPI apiHelper) {
+    public GoogleAuthProviderMock(@NonNull String connectionName, @NonNull String serverClientId, @NonNull AuthenticationAPIClient client, @NonNull GoogleAPI google) {
         super(connectionName, serverClientId, client);
-        this.apiHelper = apiHelper;
+        this.google = google;
     }
 
-    public GoogleAuthProviderMock(@NonNull String serverClientId, @NonNull AuthenticationAPIClient client, GoogleAPI apiHelper) {
+    public GoogleAuthProviderMock(@NonNull String serverClientId, @NonNull AuthenticationAPIClient client, @NonNull GoogleAPI google) {
         super(serverClientId, client);
-        this.apiHelper = apiHelper;
+        this.google = google;
     }
 
     @Override
-    GoogleAPI createAPIHelper(Activity activity) {
+    GoogleAPI createGoogleAPI(Activity activity, boolean rememberLastLogin) {
         createTokenListener();
-        return apiHelper;
+        this.rememberLastLogin = rememberLastLogin;
+        return google;
     }
 
     @Override
     GoogleCallback createTokenListener() {
         googleCallback = super.createTokenListener();
         return googleCallback;
+    }
+
+    boolean willLogoutBeforeLogin() {
+        return !rememberLastLogin;
     }
 }

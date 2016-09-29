@@ -11,8 +11,8 @@ if (hasProperty('bintray.user') && hasProperty('bintray.key') && hasProperty('bi
         publish = false
         pkg {
             repo = 'lock-android'
-            name = 'Auth0.Android'
-            desc = 'Android toolkit for Auth0 API'
+            name = 'lock-google'
+            desc = 'Lock for Android add-on to use Google Android SDK'
             websiteUrl = 'https://github.com/auth0/auth0.android'
             vcsUrl = 'scm:git@github.com:auth0/auth0.android.git'
             licenses = ["MIT"]

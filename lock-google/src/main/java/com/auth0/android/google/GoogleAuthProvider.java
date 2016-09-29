@@ -40,9 +40,11 @@ public class GoogleAuthProvider extends AuthProvider {
     private Scope[] scopes;
     private GoogleAPI google;
     private String[] androidPermissions;
+    private boolean rememberLastLogin;
 
     /**
      * Creates Google Auth provider for default Google connection 'google-oauth2'.
+     *
      * @param client         an Auth0 AuthenticationAPIClient instance
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      */
@@ -52,6 +54,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     /**
      * Creates Google Auth provider for a specific Google connection.
+     *
      * @param connectionName of Auth0's connection used to Authenticate after user is authenticated with Google. Must be a Google connection
      * @param serverClientId the OAuth 2.0 server client id obtained when creating a new credential on the Google API's console.
      * @param client         an Auth0 AuthenticationAPIClient instance
@@ -62,6 +65,7 @@ public class GoogleAuthProvider extends AuthProvider {
         this.scopes = new Scope[]{new Scope(Scopes.PLUS_LOGIN)};
         this.connectionName = connectionName;
         this.androidPermissions = new String[0];
+        this.rememberLastLogin = true;
     }
 
     /**
@@ -72,6 +76,17 @@ public class GoogleAuthProvider extends AuthProvider {
      */
     public void setRequiredPermissions(@NonNull String[] androidPermissions) {
         this.androidPermissions = androidPermissions;
+    }
+
+    /**
+     * Whether it should clear the session and logout any existing user before trying to authenticate or not.
+     * This can be useful when using Lock, so that the user always need to select which account/credentials to use.
+     * Defaults to true.
+     *
+     * @param rememberLastLogin the new flag value.
+     */
+    public void rememberLastLogin(boolean rememberLastLogin) {
+        this.rememberLastLogin = rememberLastLogin;
     }
 
     /**
@@ -86,7 +101,10 @@ public class GoogleAuthProvider extends AuthProvider {
 
     @Override
     protected void requestAuth(Activity activity, int requestCode) {
-        google = createAPIHelper(activity);
+        if (google != null) {
+            google.disconnect();
+        }
+        google = createGoogleAPI(activity, rememberLastLogin);
         final int availabilityStatus = google.isGooglePlayServicesAvailable();
         if (availabilityStatus == ConnectionResult.SUCCESS) {
             google.connectAndRequestGoogleAccount(requestCode, REQUEST_RESOLVE_ERROR);
@@ -152,8 +170,10 @@ public class GoogleAuthProvider extends AuthProvider {
         return connectionName;
     }
 
-    GoogleAPI createAPIHelper(Activity activity) {
-        return new GoogleAPI(activity, serverClientId, scopes, createTokenListener());
+    GoogleAPI createGoogleAPI(Activity activity, boolean rememberLastLogin) {
+        final GoogleAPI googleAPI = new GoogleAPI(activity, serverClientId, scopes, createTokenListener());
+        googleAPI.rememberLastLogin(rememberLastLogin);
+        return googleAPI;
     }
 
     GoogleCallback createTokenListener() {
