@@ -2,12 +2,12 @@
 
 [![Build Status](https://travis-ci.org/auth0/Lock-Google.Android.svg?branch=master)](https://travis-ci.org/auth0/Lock-Google.Android)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat)](http://doge.mit-license.org)
-[![Maven Central](https://img.shields.io/maven-central/v/com.auth0.android/lock-googleplus.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.auth0.android%22%20AND%20a%3A%22lock-googleplus%22)
-[![Bintray](https://api.bintray.com/packages/auth0/lock-android/lock-googleplus/images/download.svg) ](https://bintray.com/auth0/lock-android/lock-googleplus/_latestVersion)
+[![Maven Central](https://img.shields.io/maven-central/v/com.auth0.android/lock-google.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.auth0.android%22%20AND%20a%3A%22lock-google%22)
+[![Bintray](https://api.bintray.com/packages/auth0/lock-android/lock-google/images/download.svg) ](https://bintray.com/auth0/lock-android/lock-google/_latestVersion)
 
 [Auth0](https://auth0.com) is an authentication broker that supports social identity providers as well as enterprise identity providers such as Active Directory, LDAP, Google Apps and Salesforce.
 
-Lock-Google helps you integrate native Login with [Google+ Android SDK](https://developers.google.com/+/mobile/android/) and [Lock](https://auth0.com/lock)
+Lock-Google helps you integrate native Login with [Google Android SDK](https://developers.google.com/+/mobile/android/) and [Lock](https://auth0.com/lock)
 
 ## Requirements
 
