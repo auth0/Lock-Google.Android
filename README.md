@@ -13,51 +13,70 @@ Lock-Google helps you integrate native Login with [Google Android SDK](https://d
 
 Android 4.0 or later & Google Play Services 9.+
 
-## Before you start using Lock-Google
-
-In order to use Google APIs you'll need to register your Android application in [Google Developer Console](https://console.developers.google.com/project) and get your `Web Client ID`.
-We recommend following Google's [quickstart](https://developers.google.com/mobile/add?platform=android), just pick `Google Sign-In`. Then generate a new `OAuth 2.0 Client ID` for a Web Application in the [Credentials](https://console.developers.google.com/apis/credentials?project=_) page. Take the value and use it to configure your Google Connection's `Client ID` in [Auth0 Dashboard](https://manage.auth0.com/#/connections/social). Save this value for later as it will be used in the android provider configuration.
-
-
-> For more information please check Google's [documentation](https://developers.google.com/identity/sign-in/android/)
-
-### Auth0 Connection with multiple Google clientIDs (Web & Mobile)
-
-If you also have a Web Application, and a Google clientID & secret for it configured in Auth0, you need to whitelist the Google clientID of your mobile application in your Auth0 connection. With your Mobile clientID from Google, go to [Social Connections](https://manage.auth0.com/#/connections/social), select **Google** and add the clientID to the field named `Allowed Mobile Client IDs`
-
 ## Install
 
 The Lock-Google is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
 
 ```gradle
-compile 'com.auth0.android:lock-google:1.0.+'
+compile 'com.auth0.android:lock-google:1.0.0'
 ```
 
-Then in your project's `AndroidManifest.xml` add the following entry inside the application tag.
+### Google Developers Console
+1. Go to the [Google Developers Console](https://console.developers.google.com/) and create a new Project.
+2. Add a new **OAuth client ID** [credential](https://console.developers.google.com/apis/credentials/oauthclient) for a **Web Application**. Complete the **Authorized redirect URIs** by filling the field with your callback URL, which should look like `https://{YOUR_DOMAIN}.auth0.com/login/callback`. Take note of the `CLIENT ID` and `CLIENT SECRET` values as we're going to use them later, both in your android application as well as in the Auth0 dashboard configuration.
+3. Add a new **OAuth client ID** [credential](https://console.developers.google.com/apis/credentials/oauthclient) for an **Android** application. Obtain the **SHA-1** of the certificate you're using to sign your application and complete the first field with it. Complete the last field with your android application **Package Name** and then click the Create button. Take note of the `CLIENT ID` value as we're going to use it later in the Auth0 dashboard configuration.
+
+### Auth0 Dashboard
+1. Go to the Auth0 Dashboard and click [Social Connections](https://manage.auth0.com/#/connections/social). Click **Google** and a dialog will prompt.
+2. Complete the "Client ID" field with the `CLIENT ID` value obtained in the step 2 of the **Google Developers Console** section above.
+3. Complete the "Client Secret" field with the `CLIENT SECRET` value obtained in the step 2 of the **Google Developers Console** section above.
+4. Complete the "Allowed Mobile Client IDs" field with the `CLIENT ID` obtained in the step 3 of the **Google Developers Console** section above. Click the Save button.
+5. Return to the Auth0 Dashboard and click [Clients](https://manage.auth0.com/#/clients). If you haven't created one yet, do that first and get into your client configuration page. At the bottom of the page, click the "Show Advanced Settings" link and go to the "Mobile Settings" tab.
+6. In the Android section, complete the **Package Name** with your application's package name. Finally, complete the **Key Hashes** field with the SHA-256 of the certificate you're using to sign your application. Click the "Save Changes" button.
+
+### Android Application
+1. In your android application, create a new String resource in the `res/strings.xml` file. Name it `google_server_client_id` and set as value the `CLIENT_ID` obtained in the step 2 of the **Google Developers Console** setup section above.
+2. Add the Google Play Services version MetaData to the `AndroidManifest.xml` file, inside the Application tag.
 
 ```xml
-<meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+<meta-data
+    android:name="com.google.android.gms.version"
+    android:value="@integer/google_play_services_version" />
 ```
 
-
-### Android Permissions
-
-In your project's `AndroidManifest.xml` add the following permission:
+3. Add the Internet Android permission to your `AndroidManifest.xml` file.
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-Google Sign-In does not require additional android permissions.
+4. When creating a new instance of the `GoogleAuthProvider` pass the `google_server_client_id` value as the first parameter:
+
+```java
+public class MainActivity extends AppCompatActivity {
+  private GoogleAuthProvider provider;
+  // ...
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    Auth0 auth0 = new Auth0(getString(R.string.com_auth0_client_id), getString(R.string.com_auth0_domain));
+    final AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
+    provider = new GoogleAuthProvider(getString(R.string.google_server_client_id), client);
+  }
+
+  // ...
+}
+```
+
+Depending on your use case, you'll need to add a few more lines of code to capture the authorization result. Follow the guides below:
+
+> If you need further help with the setup, please check Google's [Sign-In for Android Guide](https://developers.google.com/identity/sign-in/android).
 
 
-## Usage
+## Authenticate with Lock
 
+This library includes an implementation of the `AuthHandler` interface for you to use it directly with **Lock**. Create a new instance of the `GoogleAuthHandler` class passing a valid `GoogleAuthProvider`. Don't forget to customize the scopes if you need to.
 
-### With Lock
-
-This library includes an implementation of the `AuthHandler` interface for you to use it directly with **Lock**. Create a new instance of the `GoogleAuthHandler` class passing a valid `GoogleAuthProvider`. Don't forget to customize the scopes if you need to. 
- 
 ```java
 Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
 AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
@@ -69,7 +88,7 @@ provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"})
 GoogleAuthHandler handler = new GoogleAuthHandler(provider);
 ```
 
-Finally in the Lock Builder, call `withAuthHandlers` passing the recently created instance. 
+Finally in the Lock Builder, call `withAuthHandlers` passing the recently created instance.
 
 ```java
 lock = Lock.newBuilder(auth0, authCallback)
@@ -78,13 +97,13 @@ lock = Lock.newBuilder(auth0, authCallback)
         .build(this);
 ```
 
-That's it! When **Lock** needs to authenticate using that connection name, it will ask the `AuthProviderResolver` for a valid `AuthProvider`.
+That's it! When **Lock** needs to authenticate using that connection name, it will ask the `GoogleAuthHandler` for a valid `AuthProvider`.
 
 > We provide this demo in the `FilesActivity` class. We also use the Google Drive SDK to get the user's Drive Files and show them on a list. Because of the Drive Scope, the SDK requires the user to grant the `GET_ACCOUNTS` android permission first. Keep in mind that _this only affects this demo_ and that if you only need to authenticate the user and get his public profile, the `GoogleAuthProvider` won't ask for additional permissions.
 
-### Without Lock
+## Authenticate without Lock
 
-Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `Server Client ID` obtained in the Project Credential's page.
+Just create a new instance of `GoogleAuthProvider` with an `AuthenticationAPIClient` and the `Server Client ID` obtained in the Project's Credentials page.
 
 ```java
 Auth0 auth0 = new Auth0("auth0-client-id", "auth0-domain");
@@ -104,7 +123,7 @@ protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 }
 ```
 
-Call `start` with a custom authentication request code to begin the authentication flow. The permissions request code is ignored as this provider doesn't need any custom android permissions.
+Call `start` with a custom authentication request code to begin the authentication flow.
 
 ```java
 provider.start(this, callback, RC_PERMISSIONS, RC_AUTHENTICATION);
@@ -114,38 +133,45 @@ That's it! You'll receive the result in the `AuthCallback` you passed.
 
 > We provide this demo in the `SimpleActivity` class.
 
-## Using a custom connection name
+
+## Additional options
+
+### Using a custom connection name
 To use a custom social connection name to authorize against Auth0, create the GoogleAuthProvider instance using the second constructor:
 
 ```java
 GoogleAuthProvider provider = new GoogleAuthProvider("my-connection", "google-server-client-id", client);
 ```
 
-## Requesting a custom Scope
+### Requesting a custom Google Scope
 By default, the scope `Scopes.PLUS_LOGIN` is requested. You can customize the Scopes by calling `setScopes` with the list of Scopes. Each Google API (Auth, Drive, Plus..) specify it's own list of Scopes.
 
 ```java
 provider.setScopes(Arrays.asList(new Scope(Scopes.PLUS_ME), new Scope(Scopes.PLUS_LOGIN)));
 ```
 
-## Using custom Android Runtime Permissions
+### Requesting custom Android Runtime Permissions
 This provider doesn't require any special Android Manifest Permission to authenticate the user. But if your use case requires them, you can let the AuthProvider handle them for you. Use the `setRequiredPermissions` method.
- 
+
 ```java
 provider.setRequiredPermissions(new String[]{"android.permission.GET_ACCOUNTS"});
 ```
 
 If you're not using Lock, then you'll have to handle the permission request result yourself. To do so, make your activity implement `ActivityCompat.OnRequestPermissionsResultCallback` and override the `onRequestPermissionsResult` method, calling `provider.onRequestPermissionsResult` with the activity context and the received parameters.
 
-## Log out / Clear account.
-To log out the user so that the next time he's prompted to select an account call `clearSession`. After you do this the provider state will be invalid and you will need to call `start` again before trying to `authorize` a result.
+### Log out / Clear account.
+To log out the user so that the next time he's prompted to input his credentials call `clearSession`. After you do this the provider state will be invalid and you will need to call `start` again before trying to `authorize` a result. Calling `stop` has the same effect.
 
 ```java
 provider.clearSession();
 ```
 
-> Calling `stop` has the same effect.
+### Remember the Last Login
+By default, this provider will remember the last account used to log in. If you want to change this behavior, use the following method.
 
+```java
+provider.rememberLastLogin(false);
+```
 
 ## Issue Reporting
 
@@ -155,7 +181,7 @@ If you have found a bug or if you have a feature request, please report them at 
 
 Auth0 helps you to:
 
-* Add authentication with [multiple authentication sources](https://docs.auth0.com/identityproviders), either social like **Google, Facebook, Microsoft Account, LinkedIn, GitHub, Twitter, Box, Salesforce, amont others**, or enterprise identity systems like **Windows Azure AD, Google Apps, Active Directory, ADFS or any SAML Identity Provider**.
+* Add authentication with [multiple authentication sources](https://docs.auth0.com/identityproviders), either social like **Google, Facebook, Microsoft Account, LinkedIn, GitHub, Twitter, Box, Salesforce, among others**, or enterprise identity systems like **Windows Azure AD, Google Apps, Active Directory, ADFS or any SAML Identity Provider**.
 * Add authentication through more traditional **[username/password databases](https://docs.auth0.com/mysql-connection-tutorial)**.
 * Add support for **[linking different user accounts](https://docs.auth0.com/link-accounts)** with the same user.
 * Support for generating signed [Json Web Tokens](https://docs.auth0.com/jwt) to call your APIs and **flow the user identity** securely.
