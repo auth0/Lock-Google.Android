@@ -77,13 +77,12 @@ public class GoogleAuthProvider extends AuthProvider {
     public void setRequiredPermissions(@NonNull String[] androidPermissions) {
         this.androidPermissions = androidPermissions;
     }
-
+    
     /**
-     * Whether it should clear the session and logout any existing user before trying to authenticate or not.
-     * This can be useful when using Lock, so that the user always need to select which account/credentials to use.
-     * Defaults to true.
+     * Whether it should remember the last account used to log in or it should ask the user to input his credentials.
+     * By default it's true, meaning it will not ask for the user account if he's already logged in.
      *
-     * @param rememberLastLogin the new flag value.
+     * @param rememberLastLogin flag to remember last Google login
      */
     public void rememberLastLogin(boolean rememberLastLogin) {
         this.rememberLastLogin = rememberLastLogin;
