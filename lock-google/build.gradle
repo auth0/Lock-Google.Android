@@ -7,7 +7,7 @@ logger.lifecycle("Using version ${version} for ${name}")
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.1'
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
         minSdkVersion 15
@@ -36,11 +36,11 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.0.1'
-    compile 'com.google.android.gms:play-services-auth:9.6.1'
-    compile 'com.auth0.android:auth0:1.1.2'
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.google.android.gms:play-services-auth:10.0.1'
+    compile 'com.auth0.android:auth0:1.4.0'
 
-    testCompile 'org.robolectric:robolectric:3.1.1'
+    testCompile 'org.robolectric:robolectric:3.1.2'
     testCompile 'com.google.guava:guava:19.0'
     testCompile 'org.hamcrest:hamcrest-integration:1.3'
     testCompile 'org.hamcrest:hamcrest-core:1.3'

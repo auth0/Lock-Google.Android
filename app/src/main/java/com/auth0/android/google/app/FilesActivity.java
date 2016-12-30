@@ -47,6 +47,7 @@ public class FilesActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private ArrayList<String> files;
     private ArrayAdapter<String> adapter;
+    private Button loginButton;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class FilesActivity extends AppCompatActivity {
                 .closable(true)
                 .build(this);
 
-        Button loginButton = (Button) findViewById(R.id.loginButton);
+        loginButton = (Button) findViewById(R.id.loginButton);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -172,6 +173,7 @@ public class FilesActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(List<String> names) {
+            loginButton.setEnabled(false);
             progressBar.setVisibility(View.GONE);
             if (names.isEmpty()) {
                 Toast.makeText(FilesActivity.this, "You have no files on Google Drive!", Toast.LENGTH_LONG).show();
