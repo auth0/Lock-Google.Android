@@ -148,6 +148,7 @@ public class GoogleAuthProvider extends AuthProvider {
     private void requestAuth0Token(String token) {
         this.auth0
                 .loginWithOAuthAccessToken(token, connectionName)
+                .addAuthenticationParameters(getParameters())
                 .start(new AuthenticationCallback<Credentials>() {
                     @Override
                     public void onSuccess(Credentials credentials) {

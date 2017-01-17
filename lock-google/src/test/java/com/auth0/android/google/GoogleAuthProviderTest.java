@@ -16,11 +16,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
 
+import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsArrayContaining;
 import org.hamcrest.collection.IsArrayWithSize;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -32,14 +34,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.collection.IsArrayContainingInAnyOrder.arrayContainingInAnyOrder;
 import static org.hamcrest.collection.IsArrayWithSize.arrayWithSize;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyMap;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -74,6 +79,7 @@ public class GoogleAuthProviderTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         provider = new GoogleAuthProviderMock(SERVER_CLIENT_ID, client, google);
+        when(authenticationRequest.addAuthenticationParameters(anyMap())).thenReturn(authenticationRequest);
     }
 
     @Test
@@ -224,21 +230,33 @@ public class GoogleAuthProviderTest {
     @Test
     public void shouldCallAuth0OAuthEndpointWhenGoogleTokenIsReceived() throws Exception {
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
+        provider.setParameters(Collections.<String, Object>singletonMap("key", "value"));
         when(client.loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME)).thenReturn(authenticationRequest);
         final List<Scope> list = Arrays.asList(provider.getScopes());
         provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<>(list)));
 
+        ArgumentCaptor<Map> mapCaptor = ArgumentCaptor.forClass(Map.class);
         verify(client).loginWithOAuthAccessToken(TOKEN, CONNECTION_NAME);
+        verify(authenticationRequest).addAuthenticationParameters(mapCaptor.capture());
+
+        assertThat(mapCaptor.getValue(), is(notNullValue()));
+        assertThat((Map<String, Object>) mapCaptor.getValue(), is(hasEntry("key", (Object) "value")));
     }
 
     @Test
     public void shouldCallAuth0OAuthEndpointWithCustomConnectionNameWhenGoogleTokenIsReceived() throws Exception {
         provider = new GoogleAuthProviderMock("my-custom-connection", SERVER_CLIENT_ID, client, google);
+        provider.setParameters(Collections.<String, Object>singletonMap("key", "value"));
         provider.start(activity, callback, PERMISSION_REQ_CODE, AUTH_REQ_CODE);
         when(client.loginWithOAuthAccessToken(TOKEN, "my-custom-connection")).thenReturn(authenticationRequest);
         provider.googleCallback.onSuccess(createGoogleSignInAccountFromToken(TOKEN, new HashSet<>(Arrays.asList(provider.getScopes()))));
 
+        ArgumentCaptor<Map> mapCaptor = ArgumentCaptor.forClass(Map.class);
         verify(client).loginWithOAuthAccessToken(TOKEN, "my-custom-connection");
+        verify(authenticationRequest).addAuthenticationParameters(mapCaptor.capture());
+
+        assertThat(mapCaptor.getValue(), is(notNullValue()));
+        assertThat((Map<String, Object>) mapCaptor.getValue(), is(hasEntry("key", (Object) "value")));
     }
 
     @Test

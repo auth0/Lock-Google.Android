@@ -41,18 +41,18 @@
         android:textSize="20sp" />
 
     <Button
-        android:id="@+id/tokenLoginButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Simple Log In (TOKEN)" />
-
-    <Button
         android:id="@+id/photosLoginButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tokenLoginButton"
-        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
         android:text="Log In Using Lock (DRIVE FILES)" />
+
+    <Button
+        android:id="@+id/tokenLoginButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/photosLoginButton"
+        android:layout_centerHorizontal="true"
+        android:text="Simple Log In (TOKEN)" />
 
 </RelativeLayout>
