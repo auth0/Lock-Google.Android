@@ -18,7 +18,7 @@ Android 4.0 or later & Google Play Services 9.+
 The Lock-Google is available through [Maven Central](http://search.maven.org) and [JCenter](https://bintray.com/bintray/jcenter). To install it, simply add the following line to your `build.gradle`:
 
 ```gradle
-compile 'com.auth0.android:lock-google:1.0.0'
+compile 'com.auth0.android:lock-google:1.1.0'
 ```
 
 ### Google Developers Console
