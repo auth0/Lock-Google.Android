@@ -1,6 +1,7 @@
 # Lock-Google
 
-[![Build Status](https://travis-ci.org/auth0/Lock-Google.Android.svg?branch=master)](https://travis-ci.org/auth0/Lock-Google.Android)
+[![CircleCI](https://img.shields.io/circleci/project/github/auth0/Lock-Google.Android.svg?style=flat-square)](https://circleci.com/gh/auth0/Lock-Google.Android/tree/master)
+[![TravisCI](https://travis-ci.org/auth0/Lock-Google.Android.svg?branch=master)](https://travis-ci.org/auth0/Lock-Google.Android)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat)](http://doge.mit-license.org)
 [![Maven Central](https://img.shields.io/maven-central/v/com.auth0.android/lock-google.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.auth0.android%22%20AND%20a%3A%22lock-google%22)
 [![Bintray](https://api.bintray.com/packages/auth0/lock-android/lock-google/images/download.svg) ](https://bintray.com/auth0/lock-android/lock-google/_latestVersion)
